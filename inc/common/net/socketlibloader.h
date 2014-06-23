@@ -39,7 +39,7 @@ public:
 	 * \param 
 	 * \return 
 	 */
-	uint32 load()
+	int32 load()
 	{
 #ifdef WINDOWS
 
@@ -65,7 +65,7 @@ public:
 			HIBYTE( wsaData.wVersion ) != 2 )
 		{
 			DISABLE_UNREFERENCE( ::WSACleanup() );
-			return 1;
+			return -1;
 		}
 #endif // WINDOWS
 
@@ -84,9 +84,6 @@ public:
 		DISABLE_UNREFERENCE( ::WSACleanup() );
 #endif // WINDOWS
 	}
-
-private:
-
 };
 
 #endif
