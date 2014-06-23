@@ -3,10 +3,10 @@
 *.lo
 *.o
 *.obj
-/Debug
-/*.ncb
-/*.suo
-/*.user
+*.ncb
+*.suo
+*.user
+/build/vs2008/Debug
 
 # Compiled Dynamic libraries
 *.so
@@ -23,5 +23,4 @@
 *.exe
 *.out
 *.app
-
 

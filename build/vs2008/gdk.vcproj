@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="./inc/;./inc/common;"
+				AdditionalIncludeDirectories="../../inc/;../../inc/common;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -175,22 +175,22 @@
 				Name="net"
 				>
 				<File
-					RelativePath=".\src\common\net\acceptor.cpp"
+					RelativePath="..\..\src\common\net\acceptor.cpp"
 					>
 				</File>
 				<File
-					RelativePath=".\src\common\net\tcpsocket.cpp"
+					RelativePath="..\..\src\common\net\tcpsocket.cpp"
 					>
 				</File>
 				<Filter
 					Name="iocp"
 					>
 					<File
-						RelativePath=".\src\common\net\iocp\iocpnetiowrappers.cpp"
+						RelativePath="..\..\src\common\net\iocp\iocpnetiowrappers.cpp"
 						>
 					</File>
 					<File
-						RelativePath=".\src\common\net\iocp\wsaextensionfunction.cpp"
+						RelativePath="..\..\src\common\net\iocp\wsaextensionfunction.cpp"
 						>
 					</File>
 				</Filter>
@@ -199,15 +199,15 @@
 				Name="test"
 				>
 				<File
-					RelativePath=".\test\debuginfo.h"
+					RelativePath="..\..\test\debuginfo.h"
 					>
 				</File>
 				<File
-					RelativePath=".\test\main.cpp"
+					RelativePath="..\..\test\main.cpp"
 					>
 				</File>
 				<File
-					RelativePath=".\test\myacceptor.h"
+					RelativePath="..\..\test\myacceptor.h"
 					>
 				</File>
 			</Filter>
@@ -215,7 +215,7 @@
 				Name="io"
 				>
 				<File
-					RelativePath=".\src\common\io\bytesbuffer.cpp"
+					RelativePath="..\..\src\common\io\bytesbuffer.cpp"
 					>
 				</File>
 			</Filter>
@@ -223,7 +223,7 @@
 				Name="util"
 				>
 				<File
-					RelativePath=".\src\common\util\debug.cpp"
+					RelativePath="..\..\src\common\util\debug.cpp"
 					>
 				</File>
 			</Filter>
@@ -234,81 +234,81 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\inc\basictype.h"
+				RelativePath="..\..\inc\basictype.h"
 				>
 			</File>
 			<File
-				RelativePath=".\inc\public.h"
+				RelativePath="..\..\inc\public.h"
 				>
 			</File>
 			<Filter
 				Name="net"
 				>
 				<File
-					RelativePath=".\inc\common\net\acceptor.h"
+					RelativePath="..\..\inc\common\net\acceptor.h"
 					>
 				</File>
 				<File
-					RelativePath=".\inc\common\net\acceptorlistener.h"
+					RelativePath="..\..\inc\common\net\acceptorlistener.h"
 					>
 				</File>
 				<File
-					RelativePath=".\inc\common\net\address.h"
+					RelativePath="..\..\inc\common\net\address.h"
 					>
 				</File>
 				<File
-					RelativePath=".\inc\common\net\connection.h"
+					RelativePath="..\..\inc\common\net\connection.h"
 					>
 				</File>
 				<File
-					RelativePath=".\inc\common\net\connectionlistener.h"
+					RelativePath="..\..\inc\common\net\connectionlistener.h"
 					>
 				</File>
 				<File
-					RelativePath=".\inc\common\net\connector.h"
+					RelativePath="..\..\inc\common\net\connector.h"
 					>
 				</File>
 				<File
-					RelativePath=".\inc\common\net\connectorlistener.h"
+					RelativePath="..\..\inc\common\net\connectorlistener.h"
 					>
 				</File>
 				<File
-					RelativePath=".\inc\common\net\netiowrappers.h"
+					RelativePath="..\..\inc\common\net\netiowrappers.h"
 					>
 				</File>
 				<File
-					RelativePath=".\inc\common\net\netiowrappersfactory.h"
+					RelativePath="..\..\inc\common\net\netiowrappersfactory.h"
 					>
 				</File>
 				<File
-					RelativePath=".\inc\common\net\netpublic.h"
+					RelativePath="..\..\inc\common\net\netpublic.h"
 					>
 				</File>
 				<File
-					RelativePath=".\inc\common\net\socket.h"
+					RelativePath="..\..\inc\common\net\socket.h"
 					>
 				</File>
 				<File
-					RelativePath=".\inc\common\net\socketlibloader.h"
+					RelativePath="..\..\inc\common\net\socketlibloader.h"
 					>
 				</File>
 				<File
-					RelativePath=".\inc\common\net\tcpsocket.h"
+					RelativePath="..\..\inc\common\net\tcpsocket.h"
 					>
 				</File>
 				<Filter
 					Name="iocp"
 					>
 					<File
-						RelativePath=".\inc\common\net\iocp\iocpdef.h"
+						RelativePath="..\..\inc\common\net\iocp\iocpdef.h"
 						>
 					</File>
 					<File
-						RelativePath=".\inc\common\net\iocp\iocpnetiowrappers.h"
+						RelativePath="..\..\inc\common\net\iocp\iocpnetiowrappers.h"
 						>
 					</File>
 					<File
-						RelativePath=".\inc\common\net\iocp\wsaextensionfunction.h"
+						RelativePath="..\..\inc\common\net\iocp\wsaextensionfunction.h"
 						>
 					</File>
 				</Filter>
@@ -316,7 +316,7 @@
 					Name="epoll"
 					>
 					<File
-						RelativePath=".\inc\common\net\epoll\epollnetiowrappers.h"
+						RelativePath="..\..\inc\common\net\epoll\epollnetiowrappers.h"
 						>
 					</File>
 				</Filter>
@@ -325,15 +325,15 @@
 				Name="util"
 				>
 				<File
-					RelativePath=".\inc\common\util\debug.h"
+					RelativePath="..\..\inc\common\util\debug.h"
 					>
 				</File>
 				<File
-					RelativePath=".\inc\common\util\refcount.h"
+					RelativePath="..\..\inc\common\util\refcount.h"
 					>
 				</File>
 				<File
-					RelativePath=".\inc\common\util\scopeptr.h"
+					RelativePath="..\..\inc\common\util\scopeptr.h"
 					>
 				</File>
 			</Filter>
@@ -341,7 +341,7 @@
 				Name="io"
 				>
 				<File
-					RelativePath=".\inc\common\io\bytesbuffer.h"
+					RelativePath="..\..\inc\common\io\bytesbuffer.h"
 					>
 				</File>
 			</Filter>
