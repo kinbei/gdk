@@ -3,6 +3,10 @@
 *.lo
 *.o
 *.obj
+/Debug
+/*.ncb
+/*.suo
+/*.user
 
 # Compiled Dynamic libraries
 *.so
@@ -19,3 +23,5 @@
 *.exe
 *.out
 *.app
+
+

@@ -1,0 +1,6 @@
+language: cpp
+
+before_script: ls
+
+script:
+  ./configure && make && make test
