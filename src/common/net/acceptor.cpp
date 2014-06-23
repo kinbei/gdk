@@ -1,7 +1,5 @@
 #include <net/acceptor.h>
 
-
-
 CAcceptor::CAcceptor()
 {
 

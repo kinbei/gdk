@@ -9,7 +9,13 @@
 #include "myacceptor.h"
 #include "debuginfo.h"
 
-#define VERSION_STRING "0.1.6.0"
+#define GDK_VERSION_MAJOR 0
+#define GDK_VERSION_MINOR 0
+#define GDK_VERSION_REVISION 1
+#define GDK_STRING_EXPAND(X) #X
+#define GDK_STRING(X) GDK_STRING_EXPAND(X)
+#define GDK_VERSION ( "GDK." GDK_STRING(GDK_VERSION_MAJOR) "." GDK_STRING(GDK_VERSION_MINOR) "." GDK_STRING(GDK_VERSION_REVISION) )
+
 #define ERROR_REPORT(fmt, ...) { fprintf( stderr, "> " fmt "\n", ##__VA_ARGS__); fflush(stderr); }
 #define NORMAL_REPORT(fmt, ...) { fprintf( stdout, "> " fmt "\n", ##__VA_ARGS__); fflush(stdout); }
 
@@ -73,7 +79,7 @@ int32 parseCmdParam( int argc, char* argv[] )
 
 int main( int argc, char* argv[] )
 {
-	NORMAL_REPORT("VERSION: %s", VERSION_STRING);
+	NORMAL_REPORT("VERSION: %s", GDK_VERSION);
 
 	// 获取参数
 	if ( parseCmdParam( argc, argv ) != 0 )
