@@ -11,9 +11,10 @@ Note: 目前不支持自动构建, 只实现了 **bytesbuffer**, **网络相关** 类
 
 
 ## Build
-
+```
 git init
 export GIT_SSL_NO_VERIFY=true
 git clone https://github.com/sleepwom/gdk.git dev
 cd gdk
 make linux
+```
