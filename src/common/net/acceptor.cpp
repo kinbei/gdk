@@ -10,7 +10,7 @@ CAcceptor::~CAcceptor()
 
 }
 
-int32 CAcceptor::open( const char *lpstrIP, uint16 nPort, int nBackLog )
+int32 CAcceptor::open( const std::string& strIP, uint16 nPort )
 {
 	int32 nRetCode = -1;
 
@@ -22,9 +22,9 @@ int32 CAcceptor::open( const char *lpstrIP, uint16 nPort, int nBackLog )
 
 	nRetCode = m_pListenSocket->create();
 	if ( nRetCode != 0 )
-		return nRetCode;			
+		return nRetCode;
 
-	return m_pListenSocket->listen( lpstrIP, nPort, nBackLog );
+	return m_pListenSocket->listen( strIP, nPort );
 }
 
 SOCKET CAcceptor::getHandle()

@@ -118,7 +118,7 @@ int main( int argc, char* argv[] )
 
 	// ´´½¨ Accpetor 
 	CMyAcceptorPtr pAcceptor = new CMyAcceptor();
-	retCode = pAcceptor->open( g_strIP.c_str(), g_nPort, SOMAXCONN );
+	retCode = pAcceptor->open( g_strIP, g_nPort );
 	if ( retCode != 0 )
 	{
 		ERROR_REPORT("Failed to init Acceptor (%d)", retCode);

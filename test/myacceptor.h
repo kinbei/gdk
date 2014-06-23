@@ -37,9 +37,9 @@ public:
 	 * \param 
 	 * \return 
 	 */
-	int32 open( const char *lpstrIP, uint16 nPort, int nBackLog )
+	int32 open( const std::string& strIP, uint16 nPort )
 	{
-		RETURN_IF_FAILED( CAcceptor::open( lpstrIP, nPort, nBackLog ) );
+		RETURN_IF_FAILED( CAcceptor::open( strIP, nPort ) );
 
 		this->setListener( new TAcceptorListener<CMyAcceptor>( this, &CMyAcceptor::onAccept ) );
 		return 0;

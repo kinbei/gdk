@@ -4,7 +4,7 @@
 #include <net/netpublic.h>
 #include <net/socket.h>
 #include <util/refcount.h>
-
+#include <string>
 
 /**
  * Tcp Socket 实现
@@ -55,7 +55,7 @@ public:
 	/**
 	 * 监听端口
 	 */
-	virtual int32 listen( const char *lpstrIP, uint16 nPort, int nBackLog );
+	virtual int32 listen( const std::string& strIP, uint16 nPort, int nBackLog = SOMAXCONN );
 
 	/**
 	 * 接受连接
