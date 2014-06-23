@@ -88,19 +88,10 @@ int main( int argc, char* argv[] )
 		exit(EXIT_FAILURE);
 	}
 
-	int32 retCode = 0;
-	CSocketLibLoader SockLibLoader;
-
 	if( ( signal( SIGINT, sig_int ) == SIG_ERR ) || ( signal( SIGTERM, sig_int ) == SIG_ERR ) )
 		exit(EXIT_FAILURE);
 
-	// Socketø‚≥ı ºªØ
-	retCode = SockLibLoader.load();
-	if ( retCode != 0 )
-	{
-		ERROR_REPORT("Failed to loadSocketLib (%d)", retCode);
-		exit(EXIT_FAILURE);
-	}
+	int32 retCode = 0;
 
 	if ( g_pNetWrappers == NULL )
 	{

@@ -19,7 +19,6 @@ public:
 	 */
 	CSocketLibLoader()
 	{
-
 	}
 
 	/**
@@ -30,7 +29,6 @@ public:
 	 */
 	virtual ~CSocketLibLoader()
 	{
-		unload();
 	}
 
 	/**
@@ -39,7 +37,7 @@ public:
 	 * \param 
 	 * \return 
 	 */
-	int32 load()
+	static int32 load()
 	{
 #ifdef WINDOWS
 
@@ -78,7 +76,7 @@ public:
 	 * \param 
 	 * \return 
 	 */
-	void unload()
+	static void unload()
 	{
 #ifdef WINDOWS
 		DISABLE_UNREFERENCE( ::WSACleanup() );

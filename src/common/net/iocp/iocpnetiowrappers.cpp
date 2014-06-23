@@ -1,5 +1,6 @@
 #include <net/iocp/iocpnetiowrappers.h>
 #include <util/scopeptr.h>
+#include <net/socketlibloader.h>
 
 #ifdef WINDOWS
 
@@ -16,6 +17,11 @@ CIocpNetIoWrappers::~CIocpNetIoWrappers()
 
 int32 CIocpNetIoWrappers::init()
 {
+	// initiates use of the Winsock DLL by a process
+	int32 nRetCode = CSocketLibLoader::load();
+	if ( nRetCode != 0 )
+		return nRetCode;
+
 	// Create Completion Port
 	m_hIOCompletionPort = ::CreateIoCompletionPort( INVALID_HANDLE_VALUE, NULL, NULL, 0 );
 
@@ -29,6 +35,8 @@ int32 CIocpNetIoWrappers::init()
 void CIocpNetIoWrappers::uninit()
 {
 	DISABLE_UNREFERENCE( ::CloseHandle( m_hIOCompletionPort ) );
+
+	CSocketLibLoader::unload();
 }
 
 int32 CIocpNetIoWrappers::addConnector( CConnectorPtr pConnector )
