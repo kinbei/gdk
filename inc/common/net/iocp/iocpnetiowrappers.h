@@ -9,7 +9,6 @@
 
 #ifdef WINDOWS
 
-#include <process.h>
 #include <net/iocp/iocpdef.h>
 #include <util/debug.h>
 

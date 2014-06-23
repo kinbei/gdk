@@ -93,6 +93,9 @@ int main( int argc, char* argv[] )
 
 	int32 retCode = 0;
 
+	//
+	CDebugMgr::setDebug( new CMyDebug() );
+
 	if ( g_pNetWrappers == NULL )
 	{
 		ERROR_REPORT("Net Driver is null!");

@@ -78,8 +78,6 @@ protected:
 	 */
 	virtual void onRecvCompleted( CConnectionPtr pConnection, const char *pBuf, uint32 nRecvLen )
 	{
-		// pConnection->recv( pBuf, nRecvLen );
-
 		char *pszBuf = new char[nRecvLen + 1];
 		memset(pszBuf, 0x00, nRecvLen + 1);
 		memcpy( pszBuf, pBuf, nRecvLen );

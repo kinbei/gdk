@@ -1,6 +1,8 @@
 #include <net/iocp/iocpnetiowrappers.h>
+#include <util/thread.h>
 #include <util/scopeptr.h>
 #include <net/socketlibloader.h>
+
 
 #ifdef WINDOWS
 
@@ -77,31 +79,13 @@ int32 CIocpNetIoWrappers::run( int32 nTimeOutMilliseconds )
 	// 创建工作线程
 	for ( uint32 i = 0; i < getCPUCount() * 2 + 2; i++ )
 	{
-		uint32 nThreadID = 0;
-		HANDLE hThread = INVALID_HANDLE_VALUE;
-
-		// _beginthreadex 创建出来的线程, 需要自己调用 CloseHandle()
-		//TODO 线程未结束, 调用 closehandle 是否会有影响
-		hThread = (HANDLE)_beginthreadex( NULL, 0, WorkerThread, (LPVOID)this, 0, &nThreadID );
-
-		// 创建线程失败
-		if ( hThread == INVALID_HANDLE_VALUE )
-		{
-			delete[] hThreads;
-			return GetLastNetError();
-		}
-
-		hThreads[ i ] = hThread;
+		CThreadPtr pThread = CThreadFactory::createThread();
+		int32 nRetCode = pThread->initialize( WorkerThread, (LPVOID)this );
+		if ( nRetCode != 0 )
+			return nRetCode;
 	}
 
-	for ( uint32 i = 0; i < getCPUCount() * 2 + 2; i++ )
-	{
-		::WaitForSingleObject( hThreads[ i ], INFINITE );
-		::CloseHandle( hThreads[ i ] );
-	}
-
-	delete[] hThreads;
-
+	CThreadFactory::finalize();
 	return 0;
 }
 

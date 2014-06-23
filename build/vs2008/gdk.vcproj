@@ -226,6 +226,10 @@
 					RelativePath="..\..\src\common\util\debug.cpp"
 					>
 				</File>
+				<File
+					RelativePath="..\..\src\common\util\thread.cpp"
+					>
+				</File>
 			</Filter>
 		</Filter>
 		<Filter
@@ -334,6 +338,10 @@
 				</File>
 				<File
 					RelativePath="..\..\inc\common\util\scopeptr.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\inc\common\util\thread.h"
 					>
 				</File>
 			</Filter>
