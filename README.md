@@ -1,14 +1,12 @@
-gdk
+GDK(Game Develop Kit)
 ===
 
-Game Develop Kit
-
-Note: 目前不支持自动构建, 只实现了 **bytesbuffer**, **网络相关** 类
-
-1. 所有错误码的返回类型为 int32, 0表示成功, 非0表示失败
-2. //TODO 作为todo list 的统一标识
-3. //!NOTE  表示注意事项
-
+## Summary
+```
+1. the return type of all the error code are int32, success shall return 0. Otherwise, failed
+2. //TODO means todo list
+3. //!NOTE means sth need attention
+```
 
 ## Build
 ```
@@ -17,4 +15,9 @@ export GIT_SSL_NO_VERIFY=true
 git clone https://github.com/sleepwom/gdk.git dev
 cd gdk
 make linux
+```
+
+## Run
+```
+./target/test ip port number
 ```

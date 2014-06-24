@@ -235,6 +235,24 @@ public:
 	{
 		return m_pRefCountBase != NULL ? m_pRefCountBase->getRefCount(): 0;
 	}
+
+	/**
+	 * 
+	 */
+	void incRef()
+	{
+		if ( m_pRefCountBase != NULL )
+			m_pRefCountBase->incRef();
+	}
+
+	/**
+	 * 
+	 */
+	void decRef()
+	{
+		if ( m_pRefCountBase != NULL )
+			m_pRefCountBase->decRef();
+	}
 };
 
 /**
@@ -465,6 +483,22 @@ public:
 	virtual ~TRefCountToObj()
 	{
 		REF_COUNT_TRACK( "%s ~TRefCountToObj()", typeid(T).name())
+	}
+
+	/**
+	 * 
+	 */
+	void incRef()
+	{
+		m_RefCounter.incRef();
+	}
+
+	/**
+	 * 
+	 */
+	void decRef()
+	{
+		m_RefCounter.decRef();
 	}
 
 protected:

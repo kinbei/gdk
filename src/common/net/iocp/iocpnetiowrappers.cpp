@@ -231,8 +231,10 @@ UINT WINAPI CIocpNetIoWrappers::WorkerThread( LPVOID pParam )
 
 				DEBUG_INFO( "Receive|Bytes(%d)", dwNumberOfBytes );
 
+				lpRecvPreIoData->m_pConnection->pushRecvData( lpRecvPreIoData->m_Buffer.buf, dwNumberOfBytes );
+
 				if ( pListener != NULL )
-					pListener->onRecvCompleted( lpRecvPreIoData->m_pConnection, lpRecvPreIoData->m_Buffer.buf, dwNumberOfBytes );
+					pListener->onRecvCompleted( lpRecvPreIoData->m_pConnection );
 
 				// Í¶µÝ WSASend & WSARecv 
 				if( pThis->postSend( pConnection ) != 0 || pThis->postRecv( pConnection ) != 0 )

@@ -8,6 +8,8 @@
 #include <io/bytesbuffer.h>
 #include <util/debug.h>
 
+#define min(a,b)    (((a) < (b)) ? (a) : (b))
+
 /**  
  * 连接类
  */
@@ -117,9 +119,67 @@ public:
 	}
 
 	/**
-	 * 接收数据
+	 * working for epoll only
 	 */
-	void recv( const char* lpBuf, uint32 nBufLen )
+	int32 recv()
+	{
+		if( m_pSocket == NULL )
+		{
+			DEBUG_INFO( "Connection(0x%08X) Socket is null", m_pSocket.get() );
+			return -1;
+		}
+
+		//TODO modify 1024 as a macro
+		char *pDestBuf = m_pRecvBuffer->writebegin( 1024 );
+		if ( pDestBuf == NULL )
+		{
+			DEBUG_INFO( "Connection(0x%08X) recv buffer is null", m_pSocket.get() );
+			return -1;
+		}
+
+		int32 nRetCode = m_pSocket->recv( pDestBuf, 1024 );
+		if ( nRetCode > 0 )
+			m_pRecvBuffer->writecommit();
+
+		return nRetCode;
+	}
+
+	/**
+	 * working for epoll only
+	 */
+	int32 send()
+	{
+		// send 1024 bytes each time at most
+		int32 nlen = min( m_pSendBuffer->getDataSize(), 1024 );
+
+		int32 retcode = m_pSocket->send( m_pSendBuffer->getRowDataPointer(), nlen );
+
+		if ( retcode == 0 )
+		{
+			m_pSendBuffer->popBytes( nlen );
+			return 0;
+		}
+		else
+		{
+			return retcode;
+		}
+	}
+
+	/**
+	 * working for epoll only
+	 */
+	bool needSend() const
+	{
+		if ( m_pSendBuffer == NULL )
+			return false;
+
+		return ( m_pSendBuffer->getDataSize() != 0 );
+	}
+
+	/**
+	 * working for iocp only
+	 */
+	void pushRecvData( const char* lpBuf, uint32 nBufLen )
 	{
 		if ( m_pRecvBuffer == NULL )
 		{
@@ -134,6 +194,7 @@ public:
 			return ;
 		}
 
+		memcpy( pDestBuf, lpBuf, nBufLen );
 		m_pRecvBuffer->writecommit();
 	}
 
@@ -202,6 +263,14 @@ public:
 	CBytesBufferPtr getSendBuffer()
 	{
 		return m_pSendBuffer;
+	}
+
+	/**
+	 * 
+	 */
+	CBytesBufferPtr getRecvBuffer()
+	{
+		return m_pRecvBuffer;
 	}
 
 private:

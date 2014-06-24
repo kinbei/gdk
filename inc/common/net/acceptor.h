@@ -34,6 +34,12 @@ public:
 	int32 open( const std::string& strIP, uint16 nPort );
 
 	/**
+	 * accept a new connection
+	 * for epoll, iocp use AcceptEx to accept a new connection
+	 */
+	CTCPSocket* accept( struct sockaddr *lpAddr, socklen_t *nAddrlen );
+
+	/**
 	 * »ñÈ¡¾ä±ú
 	 *
 	 * \param 

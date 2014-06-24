@@ -32,7 +32,7 @@ public:
 	 * \param 
 	 * \return 
 	 */
-	virtual void onRecvCompleted( CConnectionPtr pConnection, const char *pBuf, uint32 nRecvLen ) = 0;
+	virtual void onRecvCompleted( CConnectionPtr pConnection ) = 0;
 
 	/**
 	 * onSendCompleted
@@ -64,7 +64,7 @@ public:
 	 */
 	TConnectionListener( T* pClass, 
 		void (T::*pfnonSendCompleted)( CConnectionPtr pConnection, uint32 nSendBytes ),
-		void (T::*pfnonRecvCompleted)( CConnectionPtr pConnection, const char *pBuf, uint32 nRecvLen ),
+		void (T::*pfnonRecvCompleted)( CConnectionPtr pConnection ),
 		void (T::*pfnonClose)( CConnectionPtr pConnection ) ):
 	m_pClass( pClass ),
 	m_pfnonSendCompleted( pfnonSendCompleted ),
@@ -99,9 +99,9 @@ public:
 	 * \param 
 	 * \return 
 	 */
-	virtual void onRecvCompleted( CConnectionPtr pConnection, const char *pBuf, uint32 nLen )
+	virtual void onRecvCompleted( CConnectionPtr pConnection )
 	{
-		(m_pClass->*m_pfnonRecvCompleted)( pConnection, pBuf, nLen );
+		(m_pClass->*m_pfnonRecvCompleted)( pConnection );
 	}
 
 	/**
@@ -124,7 +124,7 @@ private:
 	//
 	void (T::*m_pfnonSendCompleted)( CConnectionPtr pConnection, uint32 nSendBytes );
 	//
-	void (T::*m_pfnonRecvCompleted)( CConnectionPtr pConnection, const char *pBuf, uint32 nRecvLen );
+	void (T::*m_pfnonRecvCompleted)( CConnectionPtr pConnection );
 	//
 	void (T::*m_pfnonClose)( CConnectionPtr pConnection );
 };

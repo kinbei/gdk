@@ -76,13 +76,17 @@ protected:
 	 * \param 
 	 * \return 
 	 */
-	virtual void onRecvCompleted( CConnectionPtr pConnection, const char *pBuf, uint32 nRecvLen )
+	virtual void onRecvCompleted( CConnectionPtr pConnection )
 	{
-		char *pszBuf = new char[nRecvLen + 1];
-		memset(pszBuf, 0x00, nRecvLen + 1);
-		memcpy( pszBuf, pBuf, nRecvLen );
-		DEBUG_INFO( pszBuf );
-		delete[] pszBuf;
+		CBytesBufferPtr pBuffer = pConnection->getRecvBuffer();
+		if ( pBuffer == NULL )
+		{
+			DEBUG_INFO( "recv buffer is null" );
+			return ;
+		}
+
+		DEBUG_INFO( pBuffer->getRowDataPointer() );
+		pBuffer->clear();
 	}
 
 	/**

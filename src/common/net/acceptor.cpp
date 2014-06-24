@@ -49,3 +49,8 @@ IAcceptorListenerPtr CAcceptor::getListener()
 {
 	return m_pListener;
 }
+
+CTCPSocket* CAcceptor::accept( struct sockaddr *lpAddr, socklen_t *nAddrlen )
+{
+	return m_pListenSocket->accept( lpAddr, nAddrlen );
+}
