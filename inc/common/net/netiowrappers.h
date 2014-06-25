@@ -63,7 +63,7 @@ public:
 	 * \param nTimeOutMilliseconds  超时的时间, 单位为毫秒
 	 * \return 无
 	 */
-	virtual int32 run( int32 nTimeOutMilliseconds ) = 0;
+	virtual int32 run( int32 nTimeOutMilliseconds = 100 ) = 0;
 
 	/**
 	 * stop

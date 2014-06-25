@@ -8,8 +8,6 @@
 #include <io/bytesbuffer.h>
 #include <util/debug.h>
 
-#define min(a,b)    (((a) < (b)) ? (a) : (b))
-
 /**  
  * Á¬½ÓÀà
  */
@@ -66,26 +64,26 @@ public:
 	{
 		if ( m_pSocket == NULL )
 		{
-			DEBUG_INFO( "Connection(0x%08X) Socket is NULL", (void*)this );
+			log_warning( "Connection(0x%08X) Socket is NULL", (void*)this );
 			return -1;
 		}
 
 		if ( m_pSendBuffer == NULL )
 		{
-			DEBUG_INFO( "Connection(0x%08X) SendBuffer is NULL", (void*)this );
+			log_warning( "Connection(0x%08X) SendBuffer is NULL", (void*)this );
 			return -1;
 		}
 
 		char *pDestBuf = m_pSendBuffer->writebegin( nBufLen );
 		if ( pDestBuf == NULL )
 		{
-			DEBUG_INFO( "Connection(0x%08X) Failed to WriteBegin", (void*)this );
+			log_warning( "Connection(0x%08X) Failed to WriteBegin", (void*)this );
 			return -1;
 		}
 
 		memcpy( pDestBuf, lpBuf, nBufLen );
 
-		m_pSendBuffer->writecommit();
+		m_pSendBuffer->writecommit( nBufLen );
 		return 0;
 	}
 
@@ -99,19 +97,19 @@ public:
 	{
 		if ( m_pSendBuffer == NULL )
 		{
-			DEBUG_INFO( "Connection(0x%08X) SendBuffer is NULL", (void*)this );
+			log_warning( "Connection(0x%08X) SendBuffer is NULL", (void*)this );
 			return ;
 		}
 
 		if ( m_pAddress == NULL )
 		{
-			DEBUG_INFO( "Connection(0x%08X) Address is NULL", (void*)this );
+			log_warning( "Connection(0x%08X) Address is NULL", (void*)this );
 			return ;
 		}
 
 		if ( m_pSendBuffer->getDataSize() == 0 )
 		{
-			DEBUG_INFO( "Connection(0x%08X) SizeOfSendBuf(%d) SendBytes(%d) Address(%s)", (void*)this, m_pSendBuffer->getDataSize(), nLen, m_pAddress->asString() );
+			log_warning( "Connection(0x%08X) SizeOfSendBuf(%d) SendBytes(%d) Address(%s)", (void*)this, m_pSendBuffer->getDataSize(), nLen, m_pAddress->asString() );
 			return ;
 		}
 
@@ -125,23 +123,22 @@ public:
 	{
 		if( m_pSocket == NULL )
 		{
-			DEBUG_INFO( "Connection(0x%08X) Socket is null", m_pSocket.get() );
+			log_warning( "Connection(0x%08X) Socket is null", m_pSocket.get() );
 			return -1;
 		}
 
-		//TODO modify 1024 as a macro
-		char *pDestBuf = m_pRecvBuffer->writebegin( 1024 );
+		char *pDestBuf = m_pRecvBuffer->writebegin( RECEIVE_BUFFER_SIZE );
 		if ( pDestBuf == NULL )
 		{
-			DEBUG_INFO( "Connection(0x%08X) recv buffer is null", m_pSocket.get() );
+			log_warning( "Connection(0x%08X) recv buffer is null", m_pSocket.get() );
 			return -1;
 		}
 
-		int32 nRetCode = m_pSocket->recv( pDestBuf, 1024 );
-		if ( nRetCode > 0 )
-			m_pRecvBuffer->writecommit();
+		int32 nLen = m_pSocket->recv( pDestBuf, RECEIVE_BUFFER_SIZE );
+		if ( nLen > 0 )
+			m_pRecvBuffer->writecommit( nLen );
 
-		return nRetCode;
+		return nLen;
 	}
 
 	/**
@@ -149,8 +146,8 @@ public:
 	 */
 	int32 send()
 	{
-		// send 1024 bytes each time at most
-		int32 nlen = min( m_pSendBuffer->getDataSize(), 1024 );
+		// send SEND_BUFFER_SIZE bytes each time at most
+		int32 nlen = MIN( m_pSendBuffer->getDataSize(), SEND_BUFFER_SIZE );
 
 		int32 retcode = m_pSocket->send( m_pSendBuffer->getRowDataPointer(), nlen );
 
@@ -183,19 +180,19 @@ public:
 	{
 		if ( m_pRecvBuffer == NULL )
 		{
-			DEBUG_INFO( "Connection(0x%08X) SendBuffer is NULL", (void*)this );
+			log_warning( "Connection(0x%08X) SendBuffer is NULL", (void*)this );
 			return ;
 		}
 
 		char *pDestBuf = m_pRecvBuffer->writebegin( nBufLen );
 		if ( pDestBuf == NULL )
 		{
-			DEBUG_INFO( "Connection(0x%08X) SizeOfRecvBuf(%d) RecvBytes(%d) Address(%s)", (void*)this, m_pRecvBuffer->getDataSize(), nBufLen, m_pAddress->asString() );
+			log_warning( "Connection(0x%08X) SizeOfRecvBuf(%d) RecvBytes(%d) Address(%s)", (void*)this, m_pRecvBuffer->getDataSize(), nBufLen, m_pAddress->asString() );
 			return ;
 		}
 
 		memcpy( pDestBuf, lpBuf, nBufLen );
-		m_pRecvBuffer->writecommit();
+		m_pRecvBuffer->writecommit( nBufLen );
 	}
 
 	/**

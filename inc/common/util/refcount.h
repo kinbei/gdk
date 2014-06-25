@@ -1,13 +1,9 @@
 #ifndef _REF_COUNT_H_
 #define _REF_COUNT_H_
 
-//////////////////////////////////////////////////////////////////////////
-// 引用计数遇到过的问题
-// 2. 如何去支持本地变量, this指针传递给引用计数?
-// 3. 如何防止不通过 
-//////////////////////////////////////////////////////////////////////////
-
+#include <assert.h> // for assert()
 #include <public.h>
+
 #ifdef WINDOWS
 	#include <Windows.h>
 #endif
@@ -20,7 +16,6 @@
 	#define REF_COUNT_TRACK(fmt, ...)  
 #endif
 
-// 使用 checked_delete 可以避免delete不完整类型导致出错
 // verify that types are complete for increased safety
 template<class T> inline void checked_delete(T * x)
 {
@@ -37,7 +32,7 @@ class CRefCountBase
 {
 private:
 
-	// 禁止拷贝构造
+	// No copy constructor
 	CRefCountBase( CRefCountBase const & );
 	CRefCountBase & operator= ( CRefCountBase const & );
 
@@ -65,7 +60,7 @@ public:
 	virtual void dispose() = 0;
 
 	/**
-	 * 增加引用
+	 * 
 	 */
 	void incRef()
 	{
@@ -79,7 +74,7 @@ public:
 	}
 
 	/**
-	 * 减少引用
+	 * 
 	 */
 	void decRef() // nothrow
 	{
@@ -99,7 +94,7 @@ public:
 	}
 
 	/**
-	 * 获取引用计数的个数
+	 * 
 	 */
 	long getRefCount() const
 	{
@@ -117,7 +112,7 @@ private:
 
 	T * m_pPointer;
 
-	// 禁止拷贝构造
+	// No copy constructor
 	TRefCountImpl( TRefCountImpl const & );
 	TRefCountImpl & operator= ( TRefCountImpl const & );
 
@@ -256,14 +251,14 @@ public:
 };
 
 /**
- * 引用计数封装
+ * 
  */
 template < class T >
 class TRefCountToObj 
 {
 public:
 	/**
-	 * 没有赋值, 默认为NULL
+	 * 
 	 */
 	TRefCountToObj() : m_pRefObj( NULL ), m_RefCounter()
 	{
@@ -274,7 +269,7 @@ public:
 	 * typedef TRefCountToObj<CXXX> CXXXPtr;
 	 * CXXXPtr pTest1 ( new CXXX() );
 	 */
-	//TODO boost的 share_ptr 为何要在这个函数 + explicit?
+	//!NOTE why share_ptr add explicit keyword before this function?
 	template<class Y>
 	TRefCountToObj( Y * p ): m_pRefObj( p ), m_RefCounter() 
 	{
@@ -291,7 +286,7 @@ public:
     {
     }
 
-	//TODO boost为何不提供此接口
+	//!NOTE Why not share_ptr not support this interface, not find any problem yet
 	template< class Y >
 	TRefCountToObj( TRefCountToObj<Y> const & r )  : m_pRefObj( r.m_pRefObj ), m_RefCounter( r.m_RefCounter )
 	{
@@ -381,7 +376,7 @@ public:
 	 */
     T* operator-> () const 
     {
-		//TODO 判断 m_pRefObj 不为空
+		assert( m_pRefObj != NULL );
         return m_pRefObj;
     }
 
@@ -393,13 +388,18 @@ public:
         return m_pRefObj;
     }
 
-	// 未指定的bool类型
-	// 用于隐式转换
-	typedef T* TRefCountToObj<T>::*unspecified_bool_type;
-	operator unspecified_bool_type() const 
+	// implicit conversion to "bool"
+// 	typedef T* TRefCountToObj<T>::*unspecified_bool_type;
+// 	operator unspecified_bool_type() const 
+// 	{
+// 		return m_pRefObj == NULL ? NULL: &TRefCountToObj<T>::m_pRefObj;
+// 	}
+
+	operator T*() const 
 	{
-		return m_pRefObj == NULL ? NULL: &TRefCountToObj<T>::m_pRefObj;
+		return m_pRefObj;
 	}
+
 
 	/**
 	 * 
@@ -424,59 +424,6 @@ public:
         m_RefCounter.swap(other.m_RefCounter);
     }
 	
-	//////////////////////////////////////////////////////////////////////////
-	/**
-	 * typedef TRefCountToObj<CXXX> CXXXPtr;
-	 * CXXXPtr pTest1 = new CXXX();
-	 * CXXXPtr pTest2 = pTest1;
-	 */
-
-// 	template<class Y> TRefCountToObj( const TRefCountToObj<Y>& rhs )
-// 	{ 
-// 		REF_COUNT_TRACK("%s TRefCountToObj(const TRefCountToObj& Right)", typeid(T).name());
-// // 		m_pRefObj = rhs.m_pRefObj;
-// // 		if ( m_pRefObj != NULL )
-// // 			m_pRefObj->incRef();
-// 	}
-
-	//////////////////////////////////////////////////////////////////////////
-	/**
-	 * typedef TRefCountToObj<CXXX> CXXXPtr;
-	 * CXXXPtr pTest1 = new CXXX();
-	 * CXXXPtr pTest2 = pTest1;
-	 */
-// 	TRefCountToObj( const TRefCountToObj& rhs )
-// 	{ 
-// 		REF_COUNT_TRACK("%s TRefCountToObj(const TRefCountToObj& Right)", typeid(T).name());
-// 		m_pRefObj = rhs.m_pRefObj;
-// 		if ( m_pRefObj != NULL )
-// 			m_pRefObj->incRef();
-// 	}
-
-	/**
-	 * typedef TRefCountToObj<CXXX> CXXXPtr;
-	 * CXXXPtr pTest = new CXXX();
-	 */
-// 	TRefCountToObj( T* pPointer )
-// 	{ 
-// 		REF_COUNT_TRACK("%s TRefCountToObj( T* pPointer )", typeid(T).name());
-// 
-// 		m_pRefObj = pPointer;
-// 		if ( m_pRefObj != NULL )
-// 			m_pRefObj->incRef();
-// 	}
-
-// 	/**
-// 	 * 函数说明
-// 	 *
-// 	 * \param 
-// 	 * \return 
-// 	 */
-// 	const T* operator->() const
-// 	{
-// 		return m_pRefObj;
-// 	}
-
 	/**
 	 *
 	 */

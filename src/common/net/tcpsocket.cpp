@@ -80,12 +80,6 @@ int32 CTCPSocket::listen( const std::string& strIP, uint16 nPort, int nBackLog /
 	if( SOCKET_ERROR == ::bind( this->m_Socket, (struct sockaddr*)&addr, sizeof(struct sockaddr)) )
 		return GetLastNetError();
 
-	//TODO listen 这里需要设置接收缓冲区?
-	// 设置接收缓冲区
-// 	int nRecvSize = 1024*32;
-// 	if ( -1 == setsockopt( m_Socket, SOL_SOCKET, SO_SNDBUF, (const char*)&nRecvSize, sizeof(int) ) )
-// 		return GetLastNetError();
-
 	// 监听端口
 	if( -1 == ::listen( m_Socket, nBackLog ) )
 		return GetLastNetError();

@@ -56,7 +56,7 @@ typedef struct _tag_recv_pre_io_data
 	WSABUF m_Buffer;
 
 	// 接收缓冲区
-	char szBuf[1024];
+	char szBuf[RECEIVE_BUFFER_SIZE];
 
 	// Connection
 	CConnectionPtr m_pConnection;
@@ -76,7 +76,7 @@ typedef struct _tag_send_pre_io_data
 	WSABUF m_Buffer;
 
 	// 发送缓冲区
-	char szBuf[1024];
+	char szBuf[SEND_BUFFER_SIZE];
 
 	// Connection
 	CConnectionPtr m_pConnection;

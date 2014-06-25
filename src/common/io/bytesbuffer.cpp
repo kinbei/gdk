@@ -139,9 +139,9 @@ char* CBytesBuffer::writebegin( int32 nWriteSize )
 	}
 }
 
-void CBytesBuffer::writecommit( void )
+void CBytesBuffer::writecommit( int32 nRealWriteSize )
 {
-	m_nDataSize += m_nWriteSize;
+	m_nDataSize += MIN( nRealWriteSize, m_nWriteSize );
 	m_nWriteSize = 0;
 }
 

@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <signal.h>
 #include <string>
-#include "myacceptor.h"
+#include "myconnector.h"
 #include "debuginfo.h"
 
 #define GDK_VERSION_MAJOR 0
@@ -16,9 +16,6 @@
 #define GDK_STRING(X) GDK_STRING_EXPAND(X)
 #define GDK_VERSION ( "GDK." GDK_STRING(GDK_VERSION_MAJOR) "." GDK_STRING(GDK_VERSION_MINOR) "." GDK_STRING(GDK_VERSION_REVISION) )
 
-#define ERROR_REPORT(fmt, ...) { fprintf( stderr, "> " fmt "\n", ##__VA_ARGS__); fflush(stderr); }
-#define NORMAL_REPORT(fmt, ...) { fprintf( stdout, "> " fmt "\n", ##__VA_ARGS__); fflush(stdout); }
-
 INetIoWrappersPtr g_pNetWrappers = CNetIoWrappersFactory::createInstance();
 
 void sig_int(int sigi)
@@ -26,18 +23,17 @@ void sig_int(int sigi)
 	g_pNetWrappers->stop();
 }
 
-// 绑定的IP
+// server ip
 std::string g_strIP;
-// 绑定的端口
+// server port
 uint16 g_nPort;
-// 检查客户端发送的字节数
+// the number of send bytes to server per connection
 long g_nConfPreConnectionSendBytes = 0;
+// number of client connectiones
+long g_nClientConnectionNumber = 1;
 
 /**
- * 判断一个字符串是否为数字(不判断符号)
- *
- * \param 
- * \return 
+ * 
  */
 inline bool isNumber( const char *lpsz )
 {
@@ -58,21 +54,26 @@ inline bool isNumber( const char *lpsz )
  */
 int32 parseCmdParam( int argc, char* argv[] )
 {
-	if ( argc != 4 )
+	if ( argc != 5 )
 		return -1;
 
-	// 绑定IP
+	//
 	g_strIP = argv[1];
 
-	// 绑定端口
-	if( !isNumber( argv[2] ) )
+	//
+	if ( !isNumber( argv[2] ) )
 		return -1;
 	g_nPort = atoi( argv[2] );
 
-	// 检查客户端的字节数
-	if( !isNumber( argv[3] ) )
+	//
+	if ( !isNumber( argv[3] ) )
 		return -1;
 	g_nConfPreConnectionSendBytes = atoi( argv[3] );
+
+	//
+	if ( !isNumber( argv[4] ) )
+		return -1;
+	g_nClientConnectionNumber = atoi( argv[4] );
 
 	return 0;	
 }
@@ -102,7 +103,7 @@ int main( int argc, char* argv[] )
 		exit(EXIT_FAILURE);
 	}
 
-	// 网络初始化
+	// init network
 	retCode = g_pNetWrappers->init();
 	if ( retCode != 0 )
 	{
@@ -110,27 +111,33 @@ int main( int argc, char* argv[] )
 		exit(EXIT_FAILURE);
 	}
 
-	// 创建 Accpetor 
-	CMyAcceptorPtr pAcceptor = new CMyAcceptor();
-	retCode = pAcceptor->open( g_strIP, g_nPort );
-	if ( retCode != 0 )
-	{
-		ERROR_REPORT("Failed to init Acceptor (%d)", retCode);
-		exit(EXIT_FAILURE);
-	}
+	CMyConnectorPtr* pConnector = new CMyConnectorPtr[ g_nClientConnectionNumber ];
 
-	// 将 Acceptor 添加到网络通信模型
-	retCode = g_pNetWrappers->addAcceptor( pAcceptor );
-	if ( retCode != 0 )
+	for ( int i = 0; i < g_nClientConnectionNumber; i++ )
 	{
-		ERROR_REPORT("Failed to add Acceptor (%d)", retCode);
-		exit(EXIT_FAILURE);
+		// 
+		pConnector[ i ] = new CMyConnector();
+		
+		retCode = pConnector[i]->open( g_strIP, g_nPort );
+		if ( retCode != 0 )
+		{
+			ERROR_REPORT("Failed to init Acceptor (%d)", retCode);
+			exit(EXIT_FAILURE);
+		}
+
+		// 
+		retCode = g_pNetWrappers->addConnector( pConnector[i] );
+		if ( retCode != 0 )
+		{
+			ERROR_REPORT("Failed to add Acceptor (%d)", retCode);
+			exit(EXIT_FAILURE);
+		}
 	}
 
 	NORMAL_REPORT("Start Runing");
 
 	//
-	retCode = g_pNetWrappers->run( 100 );
+	retCode = g_pNetWrappers->run();
 	if ( retCode != 0 )
 	{
 		ERROR_REPORT("Failed to run NetDriver (%d)", retCode);
@@ -138,5 +145,9 @@ int main( int argc, char* argv[] )
 	}
 
 	g_pNetWrappers->uninit();
+
+	// 
+	delete[] pConnector;
+
 	return EXIT_SUCCESS;
 }

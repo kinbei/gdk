@@ -54,6 +54,18 @@ public:
 	 * 
 	 */
 	virtual void debug( const char *pszFileName, uint32 nFileLine, const char* pszDebugInfo ) = 0;
+	/**
+	 * 
+	 */
+	virtual void info( const char *pszFileName, uint32 nFileLine, const char* pszDebugInfo ) = 0;
+	/**
+	 * 
+	 */
+	virtual void error( const char *pszFileName, uint32 nFileLine, const char* pszDebugInfo ) = 0;
+	/**
+	 * 
+	 */
+	virtual void warning( const char *pszFileName, uint32 nFileLine, const char* pszDebugInfo ) = 0;
 };
 typedef TRefCountToObj<IDebug> IDebugPtr;
 
@@ -96,6 +108,42 @@ public:
 			ms_pDebug->debug( pszFileName, nFileLine, szBuf );
 		}
 	}
+	/**
+	 * 
+	 */
+	static void info( const char *pszFileName, uint32 nFileLine, const char *pszFmt, ... )
+	{
+		if ( ms_pDebug != NULL )
+		{
+			char szBuf[1024] = {0};
+			WRITE_VAR_LOG( szBuf, pszFmt );
+			ms_pDebug->info( pszFileName, nFileLine, szBuf );
+		}
+	}
+	/**
+	 * 
+	 */
+	static void error( const char *pszFileName, uint32 nFileLine, const char *pszFmt, ... )
+	{
+		if ( ms_pDebug != NULL )
+		{
+			char szBuf[1024] = {0};
+			WRITE_VAR_LOG( szBuf, pszFmt );
+			ms_pDebug->error( pszFileName, nFileLine, szBuf );
+		}
+	}
+	/**
+	 * 
+	 */
+	static void warning( const char *pszFileName, uint32 nFileLine, const char *pszFmt, ... )
+	{
+		if ( ms_pDebug != NULL )
+		{
+			char szBuf[1024] = {0};
+			WRITE_VAR_LOG( szBuf, pszFmt );
+			ms_pDebug->warning( pszFileName, nFileLine, szBuf );
+		}
+	}
 
 private:
 	//
@@ -103,6 +151,9 @@ private:
 };
 
 
-#define DEBUG_INFO( fmt, ... ) CDebugMgr::debug( __FILE__, __LINE__, fmt, ##__VA_ARGS__ )
+#define log_debug( fmt, ... ) CDebugMgr::debug( __FILE__, __LINE__, fmt, ##__VA_ARGS__ )
+#define log_info( fmt, ... ) CDebugMgr::info( __FILE__, __LINE__, fmt, ##__VA_ARGS__ )
+#define log_error( fmt, ... ) CDebugMgr::error( __FILE__, __LINE__, fmt, ##__VA_ARGS__ )
+#define log_warning( fmt, ... ) CDebugMgr::warning( __FILE__, __LINE__, fmt, ##__VA_ARGS__ )
 
 #endif

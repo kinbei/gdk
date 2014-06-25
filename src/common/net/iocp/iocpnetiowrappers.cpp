@@ -133,7 +133,7 @@ UINT WINAPI CIocpNetIoWrappers::WorkerThread( LPVOID pParam )
 		LPBASE_PRE_IO_DATA lpPreIoData = CONTAINING_RECORD( lpOverlapped, BASE_PRE_IO_DATA, m_OverLapped );
 		if ( lpPreIoData == NULL )
 		{
-			DEBUG_INFO( "lpPreIoData is null" );
+			log_warning( "lpPreIoData is null" );
 			continue; 
 		}
 
@@ -146,7 +146,7 @@ UINT WINAPI CIocpNetIoWrappers::WorkerThread( LPVOID pParam )
 				
 				if ( !bRet )
 				{
-					DEBUG_INFO( "Accept|Error(0x%08X)", GetLastNetError() );
+					log_warning( "Accept|Error(0x%08X)", GetLastNetError() );
 					break;
 				}
 
@@ -177,7 +177,7 @@ UINT WINAPI CIocpNetIoWrappers::WorkerThread( LPVOID pParam )
 				// Associate the connection socket with the completion port
 				if( ::CreateIoCompletionPort( (HANDLE)pConnection->getHandle(), pThis->m_hIOCompletionPort, (ULONG_PTR)NULL, 0 ) == NULL )
 				{
-					DEBUG_INFO( "Accept|Connection(0x%08X) Error(%d) when associate Iocp", pConnection, GetLastNetError() );
+					log_warning( "Accept|Connection(0x%08X) Error(%d) when associate Iocp", pConnection.get(), GetLastNetError() );
 					pConnection->close();
 					break;
 				}
@@ -188,7 +188,7 @@ UINT WINAPI CIocpNetIoWrappers::WorkerThread( LPVOID pParam )
 				// 投递 WSASend & WSARecv 
 				if( pThis->postSend( pConnection ) != 0 || pThis->postRecv( pConnection ) != 0 )
 				{
-					DEBUG_INFO( "Accept|Connection(0x%08X) Error when postSend or postRecv", pConnection );
+					log_warning( "Accept|Connection(0x%08X) Error when postSend or postRecv", pConnection.get() );
 					pConnection->close();
 					break;
 				}
@@ -206,7 +206,7 @@ UINT WINAPI CIocpNetIoWrappers::WorkerThread( LPVOID pParam )
 				// 客户端断开连接
 				if ( !bRet )
 				{
-					DEBUG_INFO( "Receive|Error(0x%08X)", GetLastNetError() );
+					log_debug( "Receive|Error(0x%08X)", GetLastNetError() );
 					break;
 					
 					if ( pListener != NULL )
@@ -219,7 +219,7 @@ UINT WINAPI CIocpNetIoWrappers::WorkerThread( LPVOID pParam )
 				// 客户端断开连接
 				if ( dwNumberOfBytes == 0 )
 				{
-					DEBUG_INFO( "Receive|dwNumberOfByte is zero" );
+					log_debug( "Receive|dwNumberOfByte is zero" );
 					break;
 
 					if ( pListener != NULL )
@@ -229,7 +229,7 @@ UINT WINAPI CIocpNetIoWrappers::WorkerThread( LPVOID pParam )
 					break;
 				}
 
-				DEBUG_INFO( "Receive|Bytes(%d)", dwNumberOfBytes );
+				log_debug( "Receive|Bytes(%d)", dwNumberOfBytes );
 
 				lpRecvPreIoData->m_pConnection->pushRecvData( lpRecvPreIoData->m_Buffer.buf, dwNumberOfBytes );
 
@@ -239,7 +239,7 @@ UINT WINAPI CIocpNetIoWrappers::WorkerThread( LPVOID pParam )
 				// 投递 WSASend & WSARecv 
 				if( pThis->postSend( pConnection ) != 0 || pThis->postRecv( pConnection ) != 0 )
 				{
-					DEBUG_INFO( "Receive|Connection(0x%08X) Error when postSend or postRecv", pConnection );
+					log_warning( "Receive|Connection(0x%08X) Error when postSend or postRecv", pConnection.get() );
 					pConnection->close();
 					break;
 				}
@@ -256,13 +256,13 @@ UINT WINAPI CIocpNetIoWrappers::WorkerThread( LPVOID pParam )
 
 				if( pConnection == NULL )
 				{
-					DEBUG_INFO( "Send|Connection is null");
+					log_warning( "Send|Connection is null");
 					break;
 				}
 
 				if ( !bRet )
 				{
-					DEBUG_INFO( "Send|Error(0x%08X) Connection(0x%08X)", GetLastNetError(), pConnection );
+					log_debug( "Send|Error(0x%08X) Connection(0x%08X)", GetLastNetError(), pConnection.get() );
 
 					if ( pListener != NULL )
 						pListener->onClose( pConnection );
@@ -278,7 +278,7 @@ UINT WINAPI CIocpNetIoWrappers::WorkerThread( LPVOID pParam )
 
 				if( pThis->postSend( pConnection ) != 0 )
 				{
-					DEBUG_INFO( "Send|Connection(0x%08X) Error when postSend", pConnection );
+					log_debug( "Send|Connection(0x%08X) Error when postSend", pConnection.get() );
 
 					if ( pListener != NULL )
 						pListener->onClose( pConnection );
@@ -301,7 +301,7 @@ UINT WINAPI CIocpNetIoWrappers::WorkerThread( LPVOID pParam )
 
 				if ( !bRet )
 				{
-					DEBUG_INFO( "Connect|Error(0x%08X) Connection(0x%08X)", GetLastNetError(), pConnection );
+					log_warning( "Connect|Error(0x%08X) Connection(0x%08X)", GetLastNetError(), pConnection.get() );
 					break;
 				}
 
@@ -310,7 +310,7 @@ UINT WINAPI CIocpNetIoWrappers::WorkerThread( LPVOID pParam )
 				// 投递 WSASend & WSARecv 
 				if( pThis->postSend( pConnection ) != 0 || pThis->postRecv( pConnection ) != 0 )
 				{
-					DEBUG_INFO( "Connect|Connection(0x%08X) Error when postSend or postRecv", pConnection );
+					log_warning( "Connect|Connection(0x%08X) Error when postSend or postRecv", pConnection.get() );
 					pConnection->close();
 					break;
 				}
@@ -321,7 +321,7 @@ UINT WINAPI CIocpNetIoWrappers::WorkerThread( LPVOID pParam )
 
 		default:
 			{
-				DEBUG_INFO( "Invalid Operator Type(0x%X)", lpPreIoData->m_OperatorType );
+				log_warning( "Invalid Operator Type(0x%X)", lpPreIoData->m_OperatorType );
 			}
 			break;
 		}
@@ -332,17 +332,16 @@ UINT WINAPI CIocpNetIoWrappers::WorkerThread( LPVOID pParam )
 
 int32 CIocpNetIoWrappers::postSend( CConnectionPtr pConnection )
 {
-	//TODO 这里有可能多线程并发读
 	if ( pConnection == NULL )
 	{
-		DEBUG_INFO( "Connection is null" );
+		log_warning( "Connection is null" );
 		return -1;
 	}
 
 	CBytesBufferPtr pSendBuf = pConnection->getSendBuffer();
 	if ( pSendBuf == NULL )
 	{
-		DEBUG_INFO( "Send Buffer is null" );
+		log_warning( "Send Buffer is null" );
 		return -1;
 	}
 
@@ -352,7 +351,7 @@ int32 CIocpNetIoWrappers::postSend( CConnectionPtr pConnection )
 
 	if ( pSendBuf->getRowDataPointer() == NULL )
 	{
-		DEBUG_INFO( "Send Buffer is null" );
+		log_warning( "Send Buffer is null" );
 		return -1;
 	}
 
@@ -365,7 +364,7 @@ int32 CIocpNetIoWrappers::postSend( CConnectionPtr pConnection )
 	
 	int32 nSendLen = min( pSendBuf->getDataSize(), sizeof(preIoData->szBuf) );
 
-	DEBUG_INFO( "ThreadID(0x%08X) Connection(0x%08X) send %d bytes", ::GetCurrentThreadId(), pConnection, nSendLen );
+	log_debug( "ThreadID(0x%08X) Connection(0x%08X) send %d bytes", ::GetCurrentThreadId(), pConnection.get(), nSendLen );
 
 	// s [in]
 	// A descriptor that identifies a connected socket.
@@ -490,7 +489,6 @@ int32 CIocpNetIoWrappers::postRecv( CConnectionPtr pConnection )
 
 	// dwBufferCount [in]
 	// The number of WSABUF structures in the lpBuffers array.
-	//TODO dwBufferCount大于1时会有什么问题需要考虑?
 
 	// lpNumberOfBytesRecvd [out]
 	// A pointer to the number, in bytes, of data received by this call if the receive operation completes immediately. 

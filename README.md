@@ -10,10 +10,11 @@ GDK(Game Develop Kit)
 
 ## Build
 ```
-git init
 export GIT_SSL_NO_VERIFY=true
-git clone https://github.com/sleepwom/gdk.git dev
+git clone https://github.com/sleepwom/gdk.git --branch dev
 cd gdk
+mkdir lib
+mkdir target
 make linux
 ```
 

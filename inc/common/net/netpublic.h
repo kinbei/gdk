@@ -52,4 +52,8 @@ enum ESOCKET_MODE
 	SYNC_MODE,	 // ×èÈûÄ£Ê½
 };
 
+//
+#define RECEIVE_BUFFER_SIZE 1024
+#define SEND_BUFFER_SIZE 1024
+
 #endif

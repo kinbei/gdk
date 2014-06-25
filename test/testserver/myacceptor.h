@@ -4,6 +4,9 @@
 #include <net/acceptor.h>
 #include <util/debug.h>
 
+#define ERROR_REPORT(fmt, ...) { fprintf( stderr, "> " fmt "\n", ##__VA_ARGS__); fflush(stderr); }
+#define NORMAL_REPORT(fmt, ...) { fprintf( stdout, "> " fmt "\n", ##__VA_ARGS__); fflush(stdout); }
+
 #define RETURN_IF_FAILED( x ) \
 	do \
 	{ \
@@ -11,6 +14,8 @@
 		if ( nRet != 0 ) \
 			return nRet; \
 	} while ( false ); \
+
+extern long g_nConfPreConnectionSendBytes;
 
 /**
  * 
@@ -47,14 +52,13 @@ public:
 
 protected:
 	/**
-	 * 接受新的连接处理
+	 * accept an new connection
 	 *
-	 * \param pConnection 连上来的新连接, 可以通过 pConnection->close() 拒绝连接, pConnection->setListener() 设置回调函数
+	 * \param pConnection is the new connection, you can call pConnection->close() reject the connection, call pConnection->setListener() set the listener
 	 * \return 
 	 */
 	virtual void onAccept( CConnectionPtr pConnection )
 	{
-		// 指定连接的网络处理事件
 		pConnection->setListener( new TConnectionListener<CMyAcceptor>( this, 
 			&CMyAcceptor::onSendCompleted, 
 			&CMyAcceptor::onRecvCompleted, 
@@ -63,11 +67,11 @@ protected:
 		CAddressPtr pAddress = pConnection->getAddress();
 		if ( pAddress == NULL )
 		{
-			DEBUG_INFO( "pAddress is null" );
+			NORMAL_REPORT( "pAddress is null" );
 			return ;
 		}
 
-		DEBUG_INFO( "new Connection: %s", pAddress->asString() );
+		// NORMAL_REPORT( "new Connection: %s", pAddress->asString() );
 	}
 
 	/**
@@ -78,15 +82,34 @@ protected:
 	 */
 	virtual void onRecvCompleted( CConnectionPtr pConnection )
 	{
-		CBytesBufferPtr pBuffer = pConnection->getRecvBuffer();
-		if ( pBuffer == NULL )
+		CBytesBufferPtr pRecvBuf = pConnection->getRecvBuffer();
+		if ( pRecvBuf == NULL )
 		{
-			DEBUG_INFO( "recv buffer is null" );
+			NORMAL_REPORT( "recv buffer is null" );
 			return ;
 		}
 
-		DEBUG_INFO( pBuffer->getRowDataPointer() );
-		pBuffer->clear();
+		// need continue recv client data
+		if( pRecvBuf->getDataSize() < g_nConfPreConnectionSendBytes )
+			return ;
+
+		// The client uses 0 - 255 character cycle fill
+		while ( pRecvBuf->getDataSize() >= g_nConfPreConnectionSendBytes )
+		{
+			for ( int i = 0; i <= g_nConfPreConnectionSendBytes; i++ )
+			{
+				int c = g_nConfPreConnectionSendBytes % 255;
+
+				if( pRecvBuf->getRowDataPointer()[c] != c )
+					NORMAL_REPORT( "Invalid client data (%d) - (%d)", c, pRecvBuf->getRowDataPointer()[c] );
+			}
+
+			// echo the message
+			pConnection->send( pRecvBuf->getRowDataPointer(), g_nConfPreConnectionSendBytes );
+
+			//
+			pRecvBuf->popBytes( g_nConfPreConnectionSendBytes );
+		}
 	}
 
 	/**
@@ -110,7 +133,7 @@ protected:
 	{
 		CAddressPtr pAddress = pConnection->getAddress();
 		if ( pAddress != NULL )
-			DEBUG_INFO( "Connection(%s) closed", pAddress->asString() );
+			NORMAL_REPORT( "Connection(%s) closed", pAddress->asString() );
 	}
 
 private:

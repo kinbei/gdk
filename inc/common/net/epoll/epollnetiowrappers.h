@@ -148,7 +148,7 @@ public:
 	 * \param nTimeOutMilliseconds  超时的时间, 单位为毫秒
 	 * \return 无
 	 */
-	virtual int32 run( int32 nTimeOutMilliseconds )
+	virtual int32 run( int32 nTimeOutMilliseconds = 100 )
 	{
 		struct epoll_event events[100];
 
@@ -179,7 +179,7 @@ public:
 						IConnectorListenerPtr pListener = pConnector->getListener();
 						if ( pListener == NULL )
 						{
-							DEBUG_INFO( "Connect|Connector(0x%08X) Listener is null", pConnector.get());
+							log_debug( "Connect|Connector(0x%08X) Listener is null", pConnector.get());
 							continue ;
 						}
 
@@ -188,9 +188,7 @@ public:
 						if( addConnection( pConnection ) != 0 )
 							continue ;
 
-						pListener->onOpen( pConnection );
-
-						//TODO 是否需要重新添加事件到 epoll						
+						pListener->onOpen( pConnection );				
 					}
 					break;
 				
@@ -201,7 +199,7 @@ public:
 						IAcceptorListenerPtr pListener = pAcceptor->getListener();
 						if ( pListener == NULL )
 						{
-							DEBUG_INFO( "Accept|Acceptor(0x%08X) Listener is null", pAcceptor.get());
+							log_debug( "Accept|Acceptor(0x%08X) Listener is null", pAcceptor.get());
 							continue ;
 						}
 
@@ -212,7 +210,7 @@ public:
 						CTCPSocketPtr pRemoteSocket = pAcceptor->accept( (struct sockaddr*)&addr, &len );
 						if ( pRemoteSocket == NULL )
 						{
-							DEBUG_INFO( "Accept|Acceptor(0x%08X) RemoteSocket is null", pAcceptor.get());
+							log_warning( "Accept|Acceptor(0x%08X) RemoteSocket is null", pAcceptor.get());
 							continue ;
 						}
 
@@ -242,7 +240,7 @@ public:
 							// shutdown, recv() shall return 0. Otherwise, -1 shall be returned and errno set to indicate the error.
 							if ( nRetCode == -1 )
 							{
-								DEBUG_INFO( "Connection|Connection(0x%08X) Failed to recv Error(%d)", pConnection.get(), GetLastNetError());
+								log_warning( "Connection|Connection(0x%08X) Failed to recv Error(%d)", pConnection.get(), GetLastNetError());
 								continue ;
 							}
 
@@ -251,7 +249,7 @@ public:
 								IConnectionListenerPtr pListener = pConnection->getListener();
 								if ( pListener == NULL )
 								{
-									DEBUG_INFO( "Connection|Connection(0x%08X) Listener is null", pConnection.get());
+									log_debug( "Connection|Connection(0x%08X) Listener is null", pConnection.get());
 									continue ;
 								}
 
@@ -264,7 +262,7 @@ public:
 							IConnectionListenerPtr pListener = pConnection->getListener();
 							if ( pListener == NULL )
 							{
-								DEBUG_INFO( "Connection|Connection(0x%08X) Listener is null", pConnection.get());
+								log_debug( "Connection|Connection(0x%08X) Listener is null", pConnection.get());
 								continue ;
 							}
 
@@ -274,7 +272,7 @@ public:
 						{
 							int32 nRetCode = pConnection->send();
 							if ( nRetCode != 0 )
-								DEBUG_INFO( "Connection|Connection(0x%08X) Failed to send Error(%d)", pConnection.get(), nRetCode);
+								log_warning( "Connection|Connection(0x%08X) Failed to send Error(%d)", pConnection.get(), nRetCode);
 
 							if ( nRetCode != EAGAIN )
 								continue ;
@@ -286,12 +284,12 @@ public:
 								// When successful, epoll_ctl returns zero. When an error occurs, epoll_ctl returns -1 and errno is set appropriately.
 								if ( epoll_ctl( m_nEpollFd, EPOLL_CTL_MOD, pConnection->getHandle(), &events[i] ) != 0 ) 
 								{
-									DEBUG_INFO( "Connection|Connection(0x%08X) Failed to modify connection", pConnection.get());
+									log_warning( "Connection|Connection(0x%08X) Failed to modify connection", pConnection.get());
 
 									IConnectionListenerPtr pListener = pConnection->getListener();
 									if ( pListener == NULL )
 									{
-										DEBUG_INFO( "Connection|Connection(0x%08X) Listener is null", pConnection.get());
+										log_debug( "Connection|Connection(0x%08X) Listener is null", pConnection.get());
 										continue ;
 									}
 
@@ -307,7 +305,7 @@ public:
 							IConnectionListenerPtr pListener = pConnection->getListener();
 							if ( pListener == NULL )
 							{
-								DEBUG_INFO( "Connection|Connection(0x%08X) Listener is null", pConnection.get());
+								log_debug( "Connection|Connection(0x%08X) Listener is null", pConnection.get());
 								continue ;
 							}
 
@@ -357,12 +355,12 @@ protected:
 		// When successful, epoll_ctl returns zero. When an error occurs, epoll_ctl returns -1 and errno is set appropriately.
 		if ( epoll_ctl( m_nEpollFd, EPOLL_CTL_ADD, pConnection->getHandle(), &ev ) != 0 ) 
 		{
-			DEBUG_INFO( "Connection|Connection(0x%08X) Failed to add connection", pConnection.get());
+			log_warning( "Connection|Connection(0x%08X) Failed to add connection", pConnection.get());
 
 			IConnectionListenerPtr pListener = pConnection->getListener();
 			if ( pListener == NULL )
 			{
-				DEBUG_INFO( "Connection|Connection(0x%08X) Listener is null", pConnection.get());
+				log_debug( "Connection|Connection(0x%08X) Listener is null", pConnection.get());
 				return GetLastNetError();
 			}
 
@@ -392,7 +390,7 @@ protected:
 		// When successful, epoll_ctl returns zero. When an error occurs, epoll_ctl returns -1 and errno is set appropriately.
 		if ( epoll_ctl( m_nEpollFd, EPOLL_CTL_DEL, pConnection->getHandle(), &ev ) != 0 ) 
 		{
-			DEBUG_INFO( "Connection|Connection(0x%08X) Failed to del connection", pConnection.get());
+			log_warning( "Connection|Connection(0x%08X) Failed to del connection", pConnection.get());
 			return GetLastNetError();
 		}
 
