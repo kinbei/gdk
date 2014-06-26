@@ -89,6 +89,8 @@ protected:
 			return ;
 		}
 
+		log_debug( "Connection(%p) recv buf %d bytes", pConnection.get(), pRecvBuf->getDataSize() );
+
 		// need continue recv client data
 		if( pRecvBuf->getDataSize() < g_nConfPreConnectionSendBytes )
 			return ;
@@ -96,12 +98,12 @@ protected:
 		// The client uses 0 - 255 character cycle fill
 		while ( pRecvBuf->getDataSize() >= g_nConfPreConnectionSendBytes )
 		{
-			for ( int i = 0; i <= g_nConfPreConnectionSendBytes; i++ )
+			for ( int i = 0; i < g_nConfPreConnectionSendBytes; i++ )
 			{
-				int c = g_nConfPreConnectionSendBytes % 255;
+				int c = i % 255;
 
-				if( pRecvBuf->getRowDataPointer()[c] != c )
-					NORMAL_REPORT( "Invalid client data (%d) - (%d)", c, pRecvBuf->getRowDataPointer()[c] );
+				if( pRecvBuf->getRowDataPointer()[i] != c )
+					NORMAL_REPORT( "Invalid client data (%d) - (%d)", c, pRecvBuf->getRowDataPointer()[i] );
 			}
 
 			// echo the message

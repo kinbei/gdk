@@ -34,11 +34,11 @@ all : \
 	$(GDK_BUILD_PATH)/target/testclient
 
 $(GDK_BUILD_PATH)/lib/libcommon.a : $(foreach v, $(COMMON_CPP), src/common/$(v))
-	g++ -fPIC --shared -o $@ $^ -Iinc -Iinc/common
+	g++ -g -fPIC --shared -o $@ $^ -Iinc -Iinc/common
 
 $(GDK_BUILD_PATH)/target/testserver : $(foreach v, $(TEST_CPP), test/testserver/$(v))
-	g++ -rdynamic -o $@ $^ -Iinc -Iinc/common -L./lib -lcommon
+	g++ -g -rdynamic -o $@ $^ -Iinc -Iinc/common -L./lib -lcommon
 
 $(GDK_BUILD_PATH)/target/testclient : $(foreach v, $(TEST_CPP), test/testclient/$(v))
-	g++ -rdynamic -o $@ $^ -Iinc -Iinc/common -L./lib -lcommon
+	g++ -g -rdynamic -o $@ $^ -Iinc -Iinc/common -L./lib -lcommon
 

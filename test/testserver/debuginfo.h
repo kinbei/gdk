@@ -25,8 +25,8 @@ public:
 	 */
 	virtual void debug(  const char *pszFileName, uint32 nFileLine, const char* pszDebugInfo )
 	{
-// 		fprintf( stdout, "> %s\n", pszDebugInfo);
-// 		fflush(stdout);
+ 		fprintf( stdout, "> %s\n", pszDebugInfo);
+ 		fflush(stdout);
 	}
 	/**
 	 * 

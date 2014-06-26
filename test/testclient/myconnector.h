@@ -71,7 +71,7 @@ protected:
 			return ;
 		}
 
-		// NORMAL_REPORT( "success to connect server remote address : %s", pAddress->asString() );
+		NORMAL_REPORT( "success to connect server remote address : %s", pAddress->asString() );
 
 		// send message to server
 		char* pBuf = new char[ g_nConfPreConnectionSendBytes ];
@@ -97,6 +97,8 @@ protected:
 			return ;
 		}
 		
+		NORMAL_REPORT("Connection(%p) recv %d bytes", pConnection.get(), pRecvBuf->getDataSize());
+
 		// echo the message
 		pConnection->send( pRecvBuf->getRowDataPointer(), pRecvBuf->getDataSize() );
 
@@ -116,7 +118,7 @@ protected:
 
 				if( pRecvBuf->getRowDataPointer()[i] != c )
 				{
-					//	NORMAL_REPORT( "Invalid client data (%d) - (%d)", c, pRecvBuf->getRowDataPointer()[c] );
+					NORMAL_REPORT( "Invalid client data (%d) - (%d)", c, pRecvBuf->getRowDataPointer()[c] );
 					nInvalidBytes++;
 				}
 			}
@@ -137,7 +139,7 @@ protected:
 	 */
 	virtual void onSendCompleted( CConnectionPtr pConnection, uint32 nSendBytes )
 	{
-
+		NORMAL_REPORT( "Connection(%p) send %d bytes completed", pConnection.get(), nSendBytes );
 	}
 
 	/**

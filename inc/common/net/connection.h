@@ -81,6 +81,8 @@ public:
 			return -1;
 		}
 
+		log_debug( "Connection(%p) push send data %d bytes", nBufLen );
+
 		memcpy( pDestBuf, lpBuf, nBufLen );
 
 		m_pSendBuffer->writecommit( nBufLen );
@@ -138,6 +140,8 @@ public:
 		if ( nLen > 0 )
 			m_pRecvBuffer->writecommit( nLen );
 
+		log_debug( "Connection(%p) recv %d bytes", this, nLen );
+
 		return nLen;
 	}
 
@@ -149,17 +153,16 @@ public:
 		// send SEND_BUFFER_SIZE bytes each time at most
 		int32 nlen = MIN( m_pSendBuffer->getDataSize(), SEND_BUFFER_SIZE );
 
+		// On success, these calls return the number of characters sent.  
+		// On error, -1 is returned, and errno is set appropriately.
 		int32 retcode = m_pSocket->send( m_pSendBuffer->getRowDataPointer(), nlen );
 
-		if ( retcode == 0 )
-		{
-			m_pSendBuffer->popBytes( nlen );
-			return 0;
-		}
-		else
-		{
-			return retcode;
-		}
+		if ( retcode == -1 )
+			return GetLastNetError();
+
+		log_debug( "Connection(%p) bufsize %d send %d bytes", this, m_pSendBuffer->getDataSize(), retcode );
+		m_pSendBuffer->popBytes( retcode );
+		return 0;
 	}
 
 	/**

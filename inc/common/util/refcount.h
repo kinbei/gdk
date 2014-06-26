@@ -10,8 +10,12 @@
 
 #include <typeinfo>
 
+// #define REF_COUNT_TRACK_LOG_SUPPORT
+
+// can't use log_xxx() function in this class
+// because log_xxx() base on TRefCountToObj
 #ifdef REF_COUNT_TRACK_LOG_SUPPORT
-	#define REF_COUNT_TRACK(fmt, ...) TRACK_LOG(fmt, ##__VA_ARGS__)
+	#define REF_COUNT_TRACK(fmt, ...) printf(fmt "\n", ##__VA_ARGS__)
 #else
 	#define REF_COUNT_TRACK(fmt, ...)  
 #endif
@@ -70,7 +74,7 @@ public:
 		__sync_fetch_and_add( &m_nRefCount, 1 );
 #endif		
 
-		REF_COUNT_TRACK("CRefCount::incRef() m_nCount(%d)", m_nCount);
+		REF_COUNT_TRACK("CRefCount::incRef() m_nCount(%d)", m_nRefCount);
 	}
 
 	/**
@@ -100,6 +104,11 @@ public:
 	{
 		return static_cast<long const volatile &>( m_nRefCount );
 	}
+
+	/**
+	 * 
+	 */
+	virtual void* getRawPointer() = 0;
 };
 
 /**
@@ -129,7 +138,16 @@ public:
 	 */
 	virtual void dispose()
 	{
+		REF_COUNT_TRACK( "TRefCountImpl::dispose (%p)", m_pPointer );
 		checked_delete( m_pPointer );
+	}
+
+	/**
+	 * 
+	 */
+	virtual void* getRawPointer()
+	{
+		return m_pPointer;
 	}
 };
 
@@ -148,6 +166,15 @@ public:
 	 */
 	CRefCount(): m_pRefCountBase( NULL ) 
 	{
+	}
+
+	/**
+	 * 
+	 */
+	CRefCount( CRefCountBase* pRefCountBase ) : m_pRefCountBase( pRefCountBase )
+	{
+		if( m_pRefCountBase != NULL ) 
+			m_pRefCountBase->incRef();
 	}
 
 	/**
@@ -248,6 +275,14 @@ public:
 		if ( m_pRefCountBase != NULL )
 			m_pRefCountBase->decRef();
 	}
+
+	/**
+	 * 
+	 */
+	CRefCountBase* getRefCountBase()
+	{
+		return m_pRefCountBase;
+	}
 };
 
 /**
@@ -274,6 +309,15 @@ public:
 	TRefCountToObj( Y * p ): m_pRefObj( p ), m_RefCounter() 
 	{
 		CRefCount( p ).swap( m_RefCounter );
+	}
+
+	/**
+	 * 
+	 */
+	TRefCountToObj( CRefCount ref )
+	{
+		m_pRefObj = static_cast<T*>( ref.getRefCountBase()->getRawPointer() );
+		m_RefCounter.swap( ref );
 	}
 
 	/**
@@ -429,7 +473,7 @@ public:
 	 */
 	virtual ~TRefCountToObj()
 	{
-		REF_COUNT_TRACK( "%s ~TRefCountToObj()", typeid(T).name())
+		REF_COUNT_TRACK( "%s ~TRefCountToObj()", typeid(T).name() );
 	}
 
 	/**
@@ -446,6 +490,14 @@ public:
 	void decRef()
 	{
 		m_RefCounter.decRef();
+	}
+
+	/**
+	 * 
+	 */
+	CRefCountBase* getRefCountBase()
+	{
+		return m_RefCounter.getRefCountBase();
 	}
 
 protected:
