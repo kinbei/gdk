@@ -64,24 +64,24 @@ public:
 	{
 		if ( m_pSocket == NULL )
 		{
-			log_warning( "Connection(0x%08X) Socket is NULL", (void*)this );
+			log_warning( "Connection(%p) Socket is NULL", this );
 			return -1;
 		}
 
 		if ( m_pSendBuffer == NULL )
 		{
-			log_warning( "Connection(0x%08X) SendBuffer is NULL", (void*)this );
+			log_warning( "Connection(%p) SendBuffer is NULL", this );
 			return -1;
 		}
 
 		char *pDestBuf = m_pSendBuffer->writebegin( nBufLen );
 		if ( pDestBuf == NULL )
 		{
-			log_warning( "Connection(0x%08X) Failed to WriteBegin", (void*)this );
+			log_warning( "Connection(%p) Failed to WriteBegin", this );
 			return -1;
 		}
 
-		log_debug( "Connection(%p) push send data %d bytes", nBufLen );
+		log_debug( "Connection(%p) push send data %d bytes", this, nBufLen );
 
 		memcpy( pDestBuf, lpBuf, nBufLen );
 
@@ -99,19 +99,19 @@ public:
 	{
 		if ( m_pSendBuffer == NULL )
 		{
-			log_warning( "Connection(0x%08X) SendBuffer is NULL", (void*)this );
+			log_warning( "Connection(%p) SendBuffer is NULL", this );
 			return ;
 		}
 
 		if ( m_pAddress == NULL )
 		{
-			log_warning( "Connection(0x%08X) Address is NULL", (void*)this );
+			log_warning( "Connection(%p) Address is NULL", this );
 			return ;
 		}
 
 		if ( m_pSendBuffer->getDataSize() == 0 )
 		{
-			log_warning( "Connection(0x%08X) SizeOfSendBuf(%d) SendBytes(%d) Address(%s)", (void*)this, m_pSendBuffer->getDataSize(), nLen, m_pAddress->asString() );
+			log_warning( "Connection(%p) SizeOfSendBuf(%d) SendBytes(%d) Address(%s)", this, m_pSendBuffer->getDataSize(), nLen, m_pAddress->asString() );
 			return ;
 		}
 
@@ -125,14 +125,14 @@ public:
 	{
 		if( m_pSocket == NULL )
 		{
-			log_warning( "Connection(0x%08X) Socket is null", m_pSocket.get() );
+			log_warning( "Connection(%p) Socket is null", m_pSocket.get() );
 			return -1;
 		}
 
 		char *pDestBuf = m_pRecvBuffer->writebegin( RECEIVE_BUFFER_SIZE );
 		if ( pDestBuf == NULL )
 		{
-			log_warning( "Connection(0x%08X) recv buffer is null", m_pSocket.get() );
+			log_warning( "Connection(%p) recv buffer is null", m_pSocket.get() );
 			return -1;
 		}
 
@@ -183,14 +183,14 @@ public:
 	{
 		if ( m_pRecvBuffer == NULL )
 		{
-			log_warning( "Connection(0x%08X) SendBuffer is NULL", (void*)this );
+			log_warning( "Connection(%p) SendBuffer is NULL", this );
 			return ;
 		}
 
 		char *pDestBuf = m_pRecvBuffer->writebegin( nBufLen );
 		if ( pDestBuf == NULL )
 		{
-			log_warning( "Connection(0x%08X) SizeOfRecvBuf(%d) RecvBytes(%d) Address(%s)", (void*)this, m_pRecvBuffer->getDataSize(), nBufLen, m_pAddress->asString() );
+			log_warning( "Connection(%p) SizeOfRecvBuf(%d) RecvBytes(%d) Address(%s)", this, m_pRecvBuffer->getDataSize(), nBufLen, m_pAddress->asString() );
 			return ;
 		}
 

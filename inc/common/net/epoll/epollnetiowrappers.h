@@ -223,7 +223,7 @@ public:
 						CTCPSocketPtr pRemoteSocket = pAcceptor->accept( (struct sockaddr*)&addr, &len );
 						if ( pRemoteSocket == NULL )
 						{
-							log_warning( "Accept|Acceptor(0x%08X) RemoteSocket is null(%s)", pAcceptor.get(), getUnixErrorInfo( GetLastNetError() ).c_str() );
+							log_warning( "Accept|Acceptor(%p) RemoteSocket is null(%s)", pAcceptor.get(), getUnixErrorInfo( GetLastNetError() ).c_str() );
 							continue ;
 						}
 
@@ -291,7 +291,7 @@ public:
 							int32 nRetCode = pConnection->send();
 
 							if ( nRetCode != 0 )
-								log_warning( "Connection|Connection(0x%08X) Failed to send (%s)", pConnection.get(), getUnixErrorInfo( nRetCode ).c_str() );
+								log_warning( "Connection|Connection(%p) Failed to send (%s)", pConnection.get(), getUnixErrorInfo( nRetCode ).c_str() );
 
 							if ( !pConnection->needSend() )
 							{
@@ -356,7 +356,7 @@ protected:
 		// When successful, epoll_ctl returns zero. When an error occurs, epoll_ctl returns -1 and errno is set appropriately.
 		if ( epoll_ctl( m_nEpollFd, EPOLL_CTL_ADD, pConnection->getHandle(), &ev ) != 0 ) 
 		{
-			log_warning( "Connection|Connection(0x%08X) Failed to add connection", pConnection.get());
+			log_warning( "Connection|Connection(%p) Failed to add connection", pConnection.get());
 
 			IConnectionListenerPtr pListener = pConnection->getListener();
 			if ( pListener == NULL )
@@ -384,7 +384,7 @@ protected:
 		// When successful, epoll_ctl returns zero. When an error occurs, epoll_ctl returns -1 and errno is set appropriately.
 		if ( epoll_ctl( m_nEpollFd, EPOLL_CTL_DEL, pConnection->getHandle(), &ev ) != 0 ) 
 		{
-			log_warning( "Connection|Connection(0x%08X) Failed to del connection", pConnection.get());
+			log_warning( "Connection|Connection(%p) Failed to del connection", pConnection.get());
 			return GetLastNetError();
 		}
 
@@ -399,7 +399,7 @@ protected:
 		// When successful, epoll_ctl returns zero. When an error occurs, epoll_ctl returns -1 and errno is set appropriately.
 		if ( epoll_ctl( m_nEpollFd, EPOLL_CTL_MOD, pConnection->getHandle(), event ) != 0 ) 
 		{
-			log_warning( "Connection|Connection(0x%08X) Failed to modify connection event (%s)", pConnection.get(), getUnixErrorInfo( GetLastNetError() ).c_str() );
+			log_warning( "Connection|Connection(%p) Failed to modify connection event (%s)", pConnection.get(), getUnixErrorInfo( GetLastNetError() ).c_str() );
 			return -1;
 		}
 

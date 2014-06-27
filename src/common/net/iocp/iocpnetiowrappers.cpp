@@ -146,7 +146,7 @@ UINT WINAPI CIocpNetIoWrappers::WorkerThread( LPVOID pParam )
 				
 				if ( !bRet )
 				{
-					log_warning( "Accept|Error(0x%08X)", GetLastNetError() );
+					log_warning( "Accept|Error(%d)", GetLastNetError() );
 					break;
 				}
 
@@ -177,7 +177,7 @@ UINT WINAPI CIocpNetIoWrappers::WorkerThread( LPVOID pParam )
 				// Associate the connection socket with the completion port
 				if( ::CreateIoCompletionPort( (HANDLE)pConnection->getHandle(), pThis->m_hIOCompletionPort, (ULONG_PTR)NULL, 0 ) == NULL )
 				{
-					log_warning( "Accept|Connection(0x%08X) Error(%d) when associate Iocp", pConnection.get(), GetLastNetError() );
+					log_warning( "Accept|Connection(%p) Error(%d) when associate Iocp", pConnection.get(), GetLastNetError() );
 					pConnection->close();
 					break;
 				}
@@ -188,7 +188,7 @@ UINT WINAPI CIocpNetIoWrappers::WorkerThread( LPVOID pParam )
 				// 投递 WSASend & WSARecv 
 				if( pThis->postSend( pConnection ) != 0 || pThis->postRecv( pConnection ) != 0 )
 				{
-					log_warning( "Accept|Connection(0x%08X) Error when postSend or postRecv", pConnection.get() );
+					log_warning( "Accept|Connection(%p) Error when postSend or postRecv", pConnection.get() );
 					pConnection->close();
 					break;
 				}
@@ -206,7 +206,7 @@ UINT WINAPI CIocpNetIoWrappers::WorkerThread( LPVOID pParam )
 				// 客户端断开连接
 				if ( !bRet )
 				{
-					log_debug( "Receive|Error(0x%08X)", GetLastNetError() );
+					log_debug( "Receive|Error(%d)", GetLastNetError() );
 					break;
 					
 					if ( pListener != NULL )
@@ -239,7 +239,7 @@ UINT WINAPI CIocpNetIoWrappers::WorkerThread( LPVOID pParam )
 				// 投递 WSASend & WSARecv 
 				if( pThis->postSend( pConnection ) != 0 || pThis->postRecv( pConnection ) != 0 )
 				{
-					log_warning( "Receive|Connection(0x%08X) Error when postSend or postRecv", pConnection.get() );
+					log_warning( "Receive|Connection(%p) Error when postSend or postRecv", pConnection.get() );
 					pConnection->close();
 					break;
 				}
@@ -262,7 +262,7 @@ UINT WINAPI CIocpNetIoWrappers::WorkerThread( LPVOID pParam )
 
 				if ( !bRet )
 				{
-					log_debug( "Send|Error(0x%08X) Connection(0x%08X)", GetLastNetError(), pConnection.get() );
+					log_debug( "Send|Connection(%p) Error(%d)", pConnection.get(), GetLastNetError() );
 
 					if ( pListener != NULL )
 						pListener->onClose( pConnection );
@@ -278,7 +278,7 @@ UINT WINAPI CIocpNetIoWrappers::WorkerThread( LPVOID pParam )
 
 				if( pThis->postSend( pConnection ) != 0 )
 				{
-					log_debug( "Send|Connection(0x%08X) Error when postSend", pConnection.get() );
+					log_debug( "Send|Connection(%p) Error when postSend", pConnection.get() );
 
 					if ( pListener != NULL )
 						pListener->onClose( pConnection );
@@ -301,7 +301,7 @@ UINT WINAPI CIocpNetIoWrappers::WorkerThread( LPVOID pParam )
 
 				if ( !bRet )
 				{
-					log_warning( "Connect|Error(0x%08X) Connection(0x%08X)", GetLastNetError(), pConnection.get() );
+					log_warning( "Connect|Connection(%p) Error(%d)", pConnection.get(), GetLastNetError() );
 					break;
 				}
 
@@ -310,7 +310,7 @@ UINT WINAPI CIocpNetIoWrappers::WorkerThread( LPVOID pParam )
 				// 投递 WSASend & WSARecv 
 				if( pThis->postSend( pConnection ) != 0 || pThis->postRecv( pConnection ) != 0 )
 				{
-					log_warning( "Connect|Connection(0x%08X) Error when postSend or postRecv", pConnection.get() );
+					log_warning( "Connect|Connection(%p) Error when postSend or postRecv", pConnection.get() );
 					pConnection->close();
 					break;
 				}
@@ -364,7 +364,7 @@ int32 CIocpNetIoWrappers::postSend( CConnectionPtr pConnection )
 	
 	int32 nSendLen = min( pSendBuf->getDataSize(), sizeof(preIoData->szBuf) );
 
-	log_debug( "ThreadID(0x%08X) Connection(0x%08X) send %d bytes", ::GetCurrentThreadId(), pConnection.get(), nSendLen );
+	log_debug( "ThreadID(0x%08X) Connection(%p) send %d bytes", ::GetCurrentThreadId(), pConnection.get(), nSendLen );
 
 	// s [in]
 	// A descriptor that identifies a connected socket.
