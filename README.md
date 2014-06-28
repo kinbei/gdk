@@ -8,6 +8,15 @@ GDK(Game Develop Kit)
 3. //!NOTE means sth need attention
 ```
 
+
+## Compatibility
+```
+GDK is cross-platform. Some platform/compiler combinations which have been tested are shown as follows.
+* Visual C++ 2008 on Windows (64-bit)
+* g++ (GCC) 4.1.2 20070115 (prerelease) (SUSE Linux)
+```
+
+
 ## Build
 ```
 export GIT_SSL_NO_VERIFY=true
@@ -18,7 +27,13 @@ mkdir target
 make linux
 ```
 
+
 ## Run
 ```
-./target/test ip port number
+# run server
+./target/testserver ip port client-bytes-check-number
+
+# run client
+./target/testclient ip port client-bytes-check-number client-connection-number
+
 ```
