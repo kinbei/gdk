@@ -89,7 +89,7 @@ protected:
 			return ;
 		}
 
-		log_debug( "Connection(%p) recv buf %d bytes", pConnection.get(), pRecvBuf->getDataSize() );
+		//log_debug( "Connection(%p) recv buf %d bytes", pConnection.get(), pRecvBuf->getDataSize() );
 
 		// need continue recv client data
 		if( pRecvBuf->getDataSize() < g_nConfPreConnectionSendBytes )
@@ -102,8 +102,8 @@ protected:
 			{
 				int c = i % 255;
 
-				if( pRecvBuf->getRowDataPointer()[i] != c )
-					NORMAL_REPORT( "Invalid client data (%d) - (%d)", c, pRecvBuf->getRowDataPointer()[i] );
+				//if( pRecvBuf->getRowDataPointer()[i] != c )
+				//	NORMAL_REPORT( "Invalid client data (%d) - (%d)", c, pRecvBuf->getRowDataPointer()[i] );
 			}
 
 			// echo the message

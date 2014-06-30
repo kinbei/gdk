@@ -118,7 +118,7 @@ protected:
 
 				if( pRecvBuf->getRowDataPointer()[i] != c )
 				{
-					NORMAL_REPORT( "Invalid client data (%d) - (%d)", c, pRecvBuf->getRowDataPointer()[c] );
+					// NORMAL_REPORT( "Invalid client data (%d) - (%d)", c, pRecvBuf->getRowDataPointer()[c] );
 					nInvalidBytes++;
 				}
 			}
