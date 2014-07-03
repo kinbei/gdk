@@ -364,7 +364,7 @@ int32 CIocpNetIoWrappers::postSend( CConnectionPtr pConnection )
 	
 	int32 nSendLen = min( pSendBuf->getDataSize(), sizeof(preIoData->szBuf) );
 
-	log_debug( "ThreadID(0x%08X) Connection(%p) send %d bytes", ::GetCurrentThreadId(), pConnection.get(), nSendLen );
+	log_debug( "Connection(%p) send %d bytes", ::GetCurrentThreadId(), pConnection.get(), nSendLen );
 
 	// s [in]
 	// A descriptor that identifies a connected socket.

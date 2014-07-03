@@ -80,12 +80,15 @@ int32 parseCmdParam( int argc, char* argv[] )
 
 int main( int argc, char* argv[] )
 {
-	NORMAL_REPORT("VERSION: %s", GDK_VERSION);
+	//
+	CDebugMgr::setDebug( new CMyDebug() );
+
+	log_info("VERSION: %s", GDK_VERSION);
 
 	// 获取参数
 	if ( parseCmdParam( argc, argv ) != 0 )
 	{
-		ERROR_REPORT("usage: %s IP Port CheckSendBytes ", argv[0]);
+		log_error("usage: %s IP Port CheckSendBytes ", argv[0]);
 		exit(EXIT_FAILURE);
 	}
 
@@ -94,12 +97,9 @@ int main( int argc, char* argv[] )
 
 	int32 retCode = 0;
 
-	//
-	CDebugMgr::setDebug( new CMyDebug() );
-
 	if ( g_pNetWrappers == NULL )
 	{
-		ERROR_REPORT("Net Driver is null!");
+		log_error("Net Driver is null!");
 		exit(EXIT_FAILURE);
 	}
 
@@ -107,7 +107,7 @@ int main( int argc, char* argv[] )
 	retCode = g_pNetWrappers->init();
 	if ( retCode != 0 )
 	{
-		ERROR_REPORT("Failed to init NetDriver (%d)", retCode);
+		log_error("Failed to init NetDriver (%d)", retCode);
 		exit(EXIT_FAILURE);
 	}
 
@@ -121,7 +121,7 @@ int main( int argc, char* argv[] )
 		retCode = pConnector[i]->open( g_strIP, g_nPort );
 		if ( retCode != 0 )
 		{
-			ERROR_REPORT("Failed to init Acceptor (%d)", retCode);
+			log_error("Failed to init Acceptor (%d)", retCode);
 			exit(EXIT_FAILURE);
 		}
 
@@ -129,18 +129,18 @@ int main( int argc, char* argv[] )
 		retCode = g_pNetWrappers->addConnector( pConnector[i] );
 		if ( retCode != 0 )
 		{
-			ERROR_REPORT("Failed to add Acceptor (%d)", retCode);
+			log_error("Failed to add Acceptor (%d)", retCode);
 			exit(EXIT_FAILURE);
 		}
 	}
 
-	NORMAL_REPORT("Start Runing");
+	log_info("Start Runing");
 
 	//
 	retCode = g_pNetWrappers->run();
 	if ( retCode != 0 )
 	{
-		ERROR_REPORT("Failed to run NetDriver (%d)", retCode);
+		log_error("Failed to run NetDriver (%d)", retCode);
 		exit(EXIT_FAILURE);
 	}
 

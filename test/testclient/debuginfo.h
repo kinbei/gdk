@@ -23,33 +23,61 @@ public:
 	/**
 	 * 
 	 */
-	virtual void debug(  const char *pszFileName, uint32 nFileLine, const char* pszDebugInfo )
+	virtual void debug( uint32 nThreadID, const char *pszFileName, uint32 nFileLine, const char* pszDebugInfo )
 	{
-// 		fprintf( stdout, "> %s\n", pszDebugInfo);
-// 		fflush(stdout);
-	}
-	/**
-	 * 
-	 */
-	virtual void info( const char *pszFileName, uint32 nFileLine, const char* pszDebugInfo )
-	{
-		fprintf( stdout, "> %s\n", pszDebugInfo);
+		FILE* file = NULL;
+		if (   (  file = fopen("d:\\client.log", "ab" )  ) == NULL   )
+			return ;
+
+		fprintf( file, "> thread(0x%08X) %s\r\n", nThreadID, pszDebugInfo );
+		fclose( file );
+
+		fprintf( stdout, "> thread(0x%08X) %s\n", nThreadID, pszDebugInfo );
 		fflush(stdout);
 	}
 	/**
 	 * 
 	 */
-	virtual void error( const char *pszFileName, uint32 nFileLine, const char* pszDebugInfo )
+	virtual void info( uint32 nThreadID, const char *pszFileName, uint32 nFileLine, const char* pszDebugInfo )
 	{
-		fprintf( stdout, "> %s\n", pszDebugInfo);
+		FILE* file = NULL;
+		if (   (  file = fopen("d:\\client.log", "ab" )  ) == NULL   )
+			return ;
+
+		fprintf( file, "> thread(0x%08X) %s\r\n", nThreadID, pszDebugInfo );
+		fclose( file );
+
+		fprintf( stdout, "> thread(0x%08X) %s\n", nThreadID, pszDebugInfo );
 		fflush(stdout);
 	}
 	/**
 	 * 
 	 */
-	virtual void warning( const char *pszFileName, uint32 nFileLine, const char* pszDebugInfo )
+	virtual void error( uint32 nThreadID, const char *pszFileName, uint32 nFileLine, const char* pszDebugInfo )
 	{
-		fprintf( stdout, "> %s\n", pszDebugInfo);
+		FILE* file = NULL;
+		if (   (  file = fopen("d:\\client.log", "ab" )  ) == NULL   )
+			return ;
+
+		fprintf( file, "> thread(0x%08X) %s\r\n", nThreadID, pszDebugInfo );
+		fclose( file );
+
+		fprintf( stdout, "> thread(0x%08X) %s\n", nThreadID, pszDebugInfo );
+		fflush(stdout);
+	}
+	/**
+	 * 
+	 */
+	virtual void warning( uint32 nThreadID, const char *pszFileName, uint32 nFileLine, const char* pszDebugInfo )
+	{
+		FILE* file = NULL;
+		if (   (  file = fopen("d:\\client.log", "ab" )  ) == NULL   )
+			return ;
+
+		fprintf( file, "> thread(0x%08X) %s\r\n", nThreadID, pszDebugInfo );
+		fclose( file );
+
+		fprintf( stdout, "> thread(0x%08X) %s\n", nThreadID, pszDebugInfo );
 		fflush(stdout);
 	}
 };

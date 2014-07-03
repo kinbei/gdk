@@ -23,33 +23,33 @@ public:
 	/**
 	 * 
 	 */
-	virtual void debug(  const char *pszFileName, uint32 nFileLine, const char* pszDebugInfo )
+	virtual void debug( uint32 nThreadID, const char *pszFileName, uint32 nFileLine, const char* pszDebugInfo )
 	{
- 		fprintf( stdout, "> %s\n", pszDebugInfo);
+ 		fprintf( stdout, "> thread(%d) %s\n", nThreadID, pszDebugInfo);
  		fflush(stdout);
 	}
 	/**
 	 * 
 	 */
-	virtual void info( const char *pszFileName, uint32 nFileLine, const char* pszDebugInfo )
+	virtual void info( uint32 nThreadID, const char *pszFileName, uint32 nFileLine, const char* pszDebugInfo )
 	{
-		fprintf( stdout, "> %s\n", pszDebugInfo);
+		fprintf( stdout, "> thread(%d) %s\n", nThreadID, pszDebugInfo);
 		fflush(stdout);
 	}
 	/**
 	 * 
 	 */
-	virtual void error( const char *pszFileName, uint32 nFileLine, const char* pszDebugInfo )
+	virtual void error( uint32 nThreadID, const char *pszFileName, uint32 nFileLine, const char* pszDebugInfo )
 	{
-		fprintf( stdout, "> %s\n", pszDebugInfo);
+		fprintf( stdout, "> thread(%d) %s\n", nThreadID, pszDebugInfo);
 		fflush(stdout);
 	}
 	/**
 	 * 
 	 */
-	virtual void warning( const char *pszFileName, uint32 nFileLine, const char* pszDebugInfo )
+	virtual void warning( uint32 nThreadID, const char *pszFileName, uint32 nFileLine, const char* pszDebugInfo )
 	{
-		fprintf( stdout, "> %s\n", pszDebugInfo);
+		fprintf( stdout, "> thread(%d) %s\n", nThreadID, pszDebugInfo);
 		fflush(stdout);
 	}
 };

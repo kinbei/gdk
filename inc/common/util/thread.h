@@ -11,11 +11,15 @@
 	typedef unsigned (__stdcall * THREAD_ROUTINE_TYPE)( void * );
 
 	#include <process.h> // for _beginthreadex
+
+	#define getCurrentThreadID ::GetCurrentThreadId
 #else
 	typedef pthread_t THREAD_HANDLE;
 	typedef void ( * THREAD_ROUTINE_TYPE)( void * );
 
 	#include <pthread.h> // for pthread_create	
+
+	#define getCurrentThreadID pthread_self
 #endif
 
 /**

@@ -4,9 +4,6 @@
 #include <net/acceptor.h>
 #include <util/debug.h>
 
-#define ERROR_REPORT(fmt, ...) { fprintf( stderr, "> " fmt "\n", ##__VA_ARGS__); fflush(stderr); }
-#define NORMAL_REPORT(fmt, ...) { fprintf( stdout, "> " fmt "\n", ##__VA_ARGS__); fflush(stdout); }
-
 #define RETURN_IF_FAILED( x ) \
 	do \
 	{ \
@@ -67,11 +64,11 @@ protected:
 		CAddressPtr pAddress = pConnection->getAddress();
 		if ( pAddress == NULL )
 		{
-			NORMAL_REPORT( "pAddress is null" );
+			log_info( "pAddress is null" );
 			return ;
 		}
 
-		NORMAL_REPORT( "success to connect server remote address : %s", pAddress->asString() );
+		log_info( "success to connect server remote address : %s", pAddress->asString() );
 
 		// send message to server
 		char* pBuf = new char[ g_nConfPreConnectionSendBytes ];
@@ -93,11 +90,11 @@ protected:
 		CBytesBufferPtr pRecvBuf = pConnection->getRecvBuffer();
 		if ( pRecvBuf == NULL )
 		{
-			NORMAL_REPORT( "recv buffer is null" );
+			log_info( "recv buffer is null" );
 			return ;
 		}
 		
-		NORMAL_REPORT("Connection(%p) recv %d bytes", pConnection.get(), pRecvBuf->getDataSize());
+		log_info("Connection(%p) recv %d bytes", pConnection.get(), pRecvBuf->getDataSize());
 
 		// echo the message
 		pConnection->send( pRecvBuf->getRowDataPointer(), pRecvBuf->getDataSize() );
@@ -118,7 +115,7 @@ protected:
 
 				if( pRecvBuf->getRowDataPointer()[i] != c )
 				{
-					// NORMAL_REPORT( "Invalid client data (%d) - (%d)", c, pRecvBuf->getRowDataPointer()[c] );
+					// log_info( "Invalid client data (%d) - (%d)", c, pRecvBuf->getRowDataPointer()[c] );
 					nInvalidBytes++;
 				}
 			}
@@ -128,7 +125,7 @@ protected:
 
 		// print the count of invalid bytes
 		if ( nInvalidBytes != 0 )
-			NORMAL_REPORT( "Server Invalid server bytes (%d)", nInvalidBytes );
+			log_info( "Server Invalid server bytes (%d)", nInvalidBytes );
 	}
 
 	/**
@@ -139,7 +136,7 @@ protected:
 	 */
 	virtual void onSendCompleted( CConnectionPtr pConnection, uint32 nSendBytes )
 	{
-		NORMAL_REPORT( "Connection(%p) send %d bytes completed", pConnection.get(), nSendBytes );
+		log_info( "Connection(%p) send %d bytes completed", pConnection.get(), nSendBytes );
 	}
 
 	/**
@@ -152,7 +149,7 @@ protected:
 	{
 		CAddressPtr pAddress = pConnection->getAddress();
 		if ( pAddress != NULL )
-			NORMAL_REPORT( "Connection(%s) closed", pAddress->asString() );
+			log_info( "Connection(%s) closed", pAddress->asString() );
 	}
 
 private:
