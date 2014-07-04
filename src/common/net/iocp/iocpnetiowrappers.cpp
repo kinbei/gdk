@@ -63,7 +63,6 @@ int32 CIocpNetIoWrappers::addAcceptor( CAcceptorPtr pAcceptor )
 	if( ::CreateIoCompletionPort( (HANDLE)pAcceptor->getHandle(), m_hIOCompletionPort, (ULONG_PTR)NULL, 0 ) == NULL )
 		return GetLastNetError();
 
-	// 投递Accept请求
 	if( postAccept( pAcceptor ) != 0 )
 		return -1;
 
@@ -76,7 +75,7 @@ int32 CIocpNetIoWrappers::run( int32 nTimeOutMilliseconds )
 {
 	HANDLE* hThreads = new HANDLE[getCPUCount() * 2 + 2];
 
-	// 创建工作线程
+	// create work thread
 	for ( uint32 i = 0; i < getCPUCount() * 2 + 2; i++ )
 	{
 		CThreadPtr pThread = CThreadFactory::createThread();
@@ -97,7 +96,7 @@ void CIocpNetIoWrappers::stop()
 	for ( std::vector<CConnectorPtr>::iterator iter_t = m_vecConnector.begin(); iter_t != m_vecConnector.end(); iter_t++ )
 		(*iter_t)->close();
 
-	for ( int32 i = 0; i < ( (int32)getCPUCount() * 2 + 2 ); i++ )
+	for ( int32 i = 0; i < ( (int32)(getCPUCount() * 2 + 2) ); i++ )
 		DISABLE_UNREFERENCE( ::PostQueuedCompletionStatus( m_hIOCompletionPort, 0, 0, NULL ) );
 }
 
@@ -133,7 +132,7 @@ UINT WINAPI CIocpNetIoWrappers::WorkerThread( LPVOID pParam )
 		LPBASE_PRE_IO_DATA lpPreIoData = CONTAINING_RECORD( lpOverlapped, BASE_PRE_IO_DATA, m_OverLapped );
 		if ( lpPreIoData == NULL )
 		{
-			log_warning( "lpPreIoData is null" );
+			log_error( "lpPreIoData is null" );
 			continue; 
 		}
 
@@ -141,8 +140,8 @@ UINT WINAPI CIocpNetIoWrappers::WorkerThread( LPVOID pParam )
 		{
 		case BASE_PRE_IO_DATA::IOCP_OPERATOR_ACCEPT:
 			{
-				CScopePtr<ACCEPT_PRE_IO_DATA> lpAcceptPreIoData( (LPACCEPT_PRE_IO_DATA)lpPreIoData );
-				CAcceptorPtr pAcceptor = lpAcceptPreIoData->m_pAcceptor;
+				CScopePtr<ACCEPT_PRE_IO_DATA> pAcceptPreIoData( (LPACCEPT_PRE_IO_DATA)lpPreIoData );
+				CAcceptorPtr pAcceptor = pAcceptPreIoData->m_pAcceptor;
 				
 				if ( !bRet )
 				{
@@ -157,7 +156,7 @@ UINT WINAPI CIocpNetIoWrappers::WorkerThread( LPVOID pParam )
 				int RemoteSockaddrLength = 0;
 				DWORD dwReceiveDataLength = 0; //!NOTE: AcceptEx函数传入的 dwReceiveDataLength 为0, GetAcceptExSockaddrs 也必须传0
 
-				CWSAExtensionFunction::GetAcceptExSockaddrs( lpAcceptPreIoData->m_szAcceptOutputBuffer, 
+				CWSAExtensionFunction::GetAcceptExSockaddrs( pAcceptPreIoData->m_szAcceptOutputBuffer, 
 					dwReceiveDataLength, 
 					sizeof(SOCKADDR_IN) + 16,  
 					sizeof(SOCKADDR_IN) + 16, 
@@ -172,7 +171,7 @@ UINT WINAPI CIocpNetIoWrappers::WorkerThread( LPVOID pParam )
 				if ( retCode != 0 )
 					break;
 
-				CConnectionPtr pConnection = new CConnection( new CTCPSocket( lpAcceptPreIoData->m_sAcceptSocket ), new CAddress( lpRemoteSockaddr ) );
+				CConnectionPtr pConnection = new CConnection( new CTCPSocket( pAcceptPreIoData->m_sAcceptSocket ), new CAddress( lpRemoteSockaddr ) );
 
 				// Associate the connection socket with the completion port
 				if( ::CreateIoCompletionPort( (HANDLE)pConnection->getHandle(), pThis->m_hIOCompletionPort, (ULONG_PTR)NULL, 0 ) == NULL )
@@ -185,7 +184,6 @@ UINT WINAPI CIocpNetIoWrappers::WorkerThread( LPVOID pParam )
 				// 
 				pAcceptor->getListener()->onAccept( pConnection );
 
-				// 投递 WSASend & WSARecv 
 				if( pThis->postSend( pConnection ) != 0 || pThis->postRecv( pConnection ) != 0 )
 				{
 					log_warning( "Accept|Connection(%p) Error when postSend or postRecv", pConnection.get() );
@@ -193,17 +191,16 @@ UINT WINAPI CIocpNetIoWrappers::WorkerThread( LPVOID pParam )
 					break;
 				}
 
-				lpAcceptPreIoData->m_pAcceptor = NULL;
+				pAcceptPreIoData->m_pAcceptor = NULL;
 			}
 			break;
 
 		case BASE_PRE_IO_DATA::IOCP_OPERATOR_RECV:
 			{
-				CScopePtr<RECV_PRE_IO_DATA> lpRecvPreIoData ( (LPRECV_PRE_IO_DATA)lpPreIoData );
-				CConnectionPtr pConnection = lpRecvPreIoData->m_pConnection;
+				CScopePtr<RECV_PRE_IO_DATA> pRecvPreIoData ( (LPRECV_PRE_IO_DATA)lpPreIoData );
+				CConnectionPtr pConnection = pRecvPreIoData->m_pConnection;
 				IConnectionListenerPtr pListener = pConnection->getListener();
 
-				// 客户端断开连接
 				if ( !bRet )
 				{
 					log_debug( "Receive|Error(%d)", GetLastNetError() );
@@ -216,7 +213,6 @@ UINT WINAPI CIocpNetIoWrappers::WorkerThread( LPVOID pParam )
 					break;
 				}
 
-				// 客户端断开连接
 				if ( dwNumberOfBytes == 0 )
 				{
 					log_debug( "Receive|dwNumberOfByte is zero" );
@@ -231,12 +227,11 @@ UINT WINAPI CIocpNetIoWrappers::WorkerThread( LPVOID pParam )
 
 				log_debug( "Receive|Bytes(%d)", dwNumberOfBytes );
 
-				lpRecvPreIoData->m_pConnection->pushRecvData( lpRecvPreIoData->m_Buffer.buf, dwNumberOfBytes );
+				pRecvPreIoData->m_pConnection->pushRecvData( pRecvPreIoData->m_Buffer.buf, dwNumberOfBytes );
 
 				if ( pListener != NULL )
-					pListener->onRecvCompleted( lpRecvPreIoData->m_pConnection );
+					pListener->onRecvCompleted( pRecvPreIoData->m_pConnection );
 
-				// 投递 WSASend & WSARecv 
 				if( pThis->postSend( pConnection ) != 0 || pThis->postRecv( pConnection ) != 0 )
 				{
 					log_warning( "Receive|Connection(%p) Error when postSend or postRecv", pConnection.get() );
@@ -244,14 +239,14 @@ UINT WINAPI CIocpNetIoWrappers::WorkerThread( LPVOID pParam )
 					break;
 				}
 
-				lpRecvPreIoData->m_pConnection = NULL;
+				pRecvPreIoData->m_pConnection = NULL;
 			}
 			break;
 
 		case BASE_PRE_IO_DATA::IOCP_OPERATOR_SEND:
 			{
-				CScopePtr<SEND_PRE_IO_DATA> lpSendPreIoData ( (LPSEND_PRE_IO_DATA)lpPreIoData );
-				CConnectionPtr pConnection = lpSendPreIoData->m_pConnection;
+				CScopePtr<SEND_PRE_IO_DATA> pSendPreIoData ( (LPSEND_PRE_IO_DATA)lpPreIoData );
+				CConnectionPtr pConnection = pSendPreIoData->m_pConnection;
 				IConnectionListenerPtr pListener = pConnection->getListener();
 
 				if( pConnection == NULL )
@@ -287,15 +282,15 @@ UINT WINAPI CIocpNetIoWrappers::WorkerThread( LPVOID pParam )
 					break;
 				}
 
-				lpSendPreIoData->m_pConnection = NULL;
+				pSendPreIoData->m_pConnection = NULL;
 			}
 			break;
 
 		case BASE_PRE_IO_DATA::IOCP_OPERATOR_CONNECT:
 			{
 				int32 retCode = -1;
-				CScopePtr<CONNECT_PRE_IO_DATA> lpConnectPreIoData ( (LPCONNECT_PRE_IO_DATA)lpPreIoData );
-				CConnectorPtr pConnector = lpConnectPreIoData->m_pConnector;
+				CScopePtr<CONNECT_PRE_IO_DATA> pConnectPreIoData ( (LPCONNECT_PRE_IO_DATA)lpPreIoData );
+				CConnectorPtr pConnector = pConnectPreIoData->m_pConnector;
 				IConnectorListenerPtr pListener = pConnector->getListener();
 				CConnectionPtr pConnection = new CConnection( new CTCPSocket( pConnector->getHandle() ), pConnector->getAddress() );
 
@@ -307,7 +302,6 @@ UINT WINAPI CIocpNetIoWrappers::WorkerThread( LPVOID pParam )
 
 				pListener->onOpen( pConnection );
 
-				// 投递 WSASend & WSARecv 
 				if( pThis->postSend( pConnection ) != 0 || pThis->postRecv( pConnection ) != 0 )
 				{
 					log_warning( "Connect|Connection(%p) Error when postSend or postRecv", pConnection.get() );
@@ -315,13 +309,13 @@ UINT WINAPI CIocpNetIoWrappers::WorkerThread( LPVOID pParam )
 					break;
 				}
 
-				lpConnectPreIoData->m_pConnector = NULL;
+				pConnectPreIoData->m_pConnector = NULL;
 			}
 			break;
 
 		default:
 			{
-				log_warning( "Invalid Operator Type(0x%X)", lpPreIoData->m_OperatorType );
+				log_error( "Undefined operator type(0x%X)", lpPreIoData->m_OperatorType );
 			}
 			break;
 		}
@@ -334,37 +328,37 @@ int32 CIocpNetIoWrappers::postSend( CConnectionPtr pConnection )
 {
 	if ( pConnection == NULL )
 	{
-		log_warning( "Connection is null" );
+		log_error( "Connection is null" );
 		return -1;
 	}
 
 	CBytesBufferPtr pSendBuf = pConnection->getSendBuffer();
 	if ( pSendBuf == NULL )
 	{
-		log_warning( "Send Buffer is null" );
+		log_error( "Connection(%p) Send Buffer is null", pConnection );
 		return -1;
 	}
 
-	// 没有数据发送则认为成功
+	// No data transmission return success
 	if ( pSendBuf->getDataSize() == 0 )
 		return 0;
 
 	if ( pSendBuf->getRowDataPointer() == NULL )
 	{
-		log_warning( "Send Buffer is null" );
+		log_error( "Connection(%p) RowDataPointer of send Buffer is null", pConnection );
 		return -1;
 	}
 
 	int32 nRetCode = -1;
 
-	//TODO 这里可以做成对象池
+	//TODO preIoData may get from a object pool
 	CScopePtr<SEND_PRE_IO_DATA> preIoData ( new SEND_PRE_IO_DATA() );
 	preIoData->m_BasePreIoData.m_OperatorType = BASE_PRE_IO_DATA::IOCP_OPERATOR_SEND;
 	preIoData->m_pConnection = pConnection;
 	
 	int32 nSendLen = min( pSendBuf->getDataSize(), sizeof(preIoData->szBuf) );
 
-	log_debug( "Connection(%p) send %d bytes", ::GetCurrentThreadId(), pConnection.get(), nSendLen );
+	log_debug( "Connection(%p) send %d bytes", pConnection.get(), nSendLen );
 
 	// s [in]
 	// A descriptor that identifies a connected socket.
@@ -405,7 +399,8 @@ int32 CIocpNetIoWrappers::postSend( CConnectionPtr pConnection )
 			return nRetCode;
 	}
 
-	preIoData.incRef(); // 增加计数, 析构时不进行delete
+	// don't delete preIoData
+	preIoData.incRef(); 
 	return 0;
 }
 
