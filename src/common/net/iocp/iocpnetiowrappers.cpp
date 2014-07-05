@@ -195,11 +195,41 @@ UINT WINAPI CIocpNetIoWrappers::WorkerThread( LPVOID pParam )
 			}
 			break;
 
+		case BASE_PRE_IO_DATA::IOCP_OPERATOR_CONNECT:
+			{
+				int32 retCode = -1;
+				CScopePtr<CONNECT_PRE_IO_DATA> pConnectPreIoData ( (LPCONNECT_PRE_IO_DATA)lpPreIoData );
+				CConnectorPtr pConnector = pConnectPreIoData->m_pConnector;
+				IConnectorListenerPtr pListener = pConnector->getListener();
+				CConnectionPtr pConnection = new CConnection( new CTCPSocket( pConnector->getHandle() ), pConnector->getAddress() );
+
+				if ( !bRet )
+				{
+					log_warning( "Connect|Connection(%p) Error(%d)", pConnection.get(), GetLastNetError() );
+					break;
+				}
+
+				CAutoLock locker( pConnection->getMutex() );
+
+				pListener->onOpen( pConnection );
+
+				if( pThis->postSend( pConnection ) != 0 || pThis->postRecv( pConnection ) != 0 )
+				{
+					log_warning( "Connect|Connection(%p) Error when postSend or postRecv", pConnection.get() );
+					pConnection->close();
+					break;
+				}
+
+				pConnectPreIoData->m_pConnector = NULL;
+			}
+			break;
+
 		case BASE_PRE_IO_DATA::IOCP_OPERATOR_RECV:
 			{
 				CScopePtr<RECV_PRE_IO_DATA> pRecvPreIoData ( (LPRECV_PRE_IO_DATA)lpPreIoData );
 				CConnectionPtr pConnection = pRecvPreIoData->m_pConnection;
 				IConnectionListenerPtr pListener = pConnection->getListener();
+				CAutoLock locker( pConnection->getMutex() );
 
 				if ( !bRet )
 				{
@@ -225,7 +255,7 @@ UINT WINAPI CIocpNetIoWrappers::WorkerThread( LPVOID pParam )
 					break;
 				}
 
-				log_debug( "Receive|Bytes(%d)", dwNumberOfBytes );
+				log_debug( "Receive|Connection(%p) Bytes(%d)", pConnection.get(), dwNumberOfBytes );
 
 				pRecvPreIoData->m_pConnection->pushRecvData( pRecvPreIoData->m_Buffer.buf, dwNumberOfBytes );
 
@@ -248,6 +278,7 @@ UINT WINAPI CIocpNetIoWrappers::WorkerThread( LPVOID pParam )
 				CScopePtr<SEND_PRE_IO_DATA> pSendPreIoData ( (LPSEND_PRE_IO_DATA)lpPreIoData );
 				CConnectionPtr pConnection = pSendPreIoData->m_pConnection;
 				IConnectionListenerPtr pListener = pConnection->getListener();
+				CAutoLock locker( pConnection->getMutex() );
 
 				if( pConnection == NULL )
 				{
@@ -266,6 +297,7 @@ UINT WINAPI CIocpNetIoWrappers::WorkerThread( LPVOID pParam )
 					break;
 				}
 
+				log_debug( "Send|Connection(%p) bytes(%d)", pConnection.get(), dwNumberOfBytes );
 				pConnection->finishSend( dwNumberOfBytes );
 
 				if ( pListener != NULL )
@@ -273,7 +305,7 @@ UINT WINAPI CIocpNetIoWrappers::WorkerThread( LPVOID pParam )
 
 				if( pThis->postSend( pConnection ) != 0 )
 				{
-					log_debug( "Send|Connection(%p) Error when postSend", pConnection.get() );
+					log_error( "Send|Connection(%p) Error when postSend", pConnection.get() );
 
 					if ( pListener != NULL )
 						pListener->onClose( pConnection );
@@ -283,33 +315,6 @@ UINT WINAPI CIocpNetIoWrappers::WorkerThread( LPVOID pParam )
 				}
 
 				pSendPreIoData->m_pConnection = NULL;
-			}
-			break;
-
-		case BASE_PRE_IO_DATA::IOCP_OPERATOR_CONNECT:
-			{
-				int32 retCode = -1;
-				CScopePtr<CONNECT_PRE_IO_DATA> pConnectPreIoData ( (LPCONNECT_PRE_IO_DATA)lpPreIoData );
-				CConnectorPtr pConnector = pConnectPreIoData->m_pConnector;
-				IConnectorListenerPtr pListener = pConnector->getListener();
-				CConnectionPtr pConnection = new CConnection( new CTCPSocket( pConnector->getHandle() ), pConnector->getAddress() );
-
-				if ( !bRet )
-				{
-					log_warning( "Connect|Connection(%p) Error(%d)", pConnection.get(), GetLastNetError() );
-					break;
-				}
-
-				pListener->onOpen( pConnection );
-
-				if( pThis->postSend( pConnection ) != 0 || pThis->postRecv( pConnection ) != 0 )
-				{
-					log_warning( "Connect|Connection(%p) Error when postSend or postRecv", pConnection.get() );
-					pConnection->close();
-					break;
-				}
-
-				pConnectPreIoData->m_pConnector = NULL;
 			}
 			break;
 

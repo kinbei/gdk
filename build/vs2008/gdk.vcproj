@@ -298,6 +298,14 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\inc\common\util\mutex.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\inc\common\util\mutex_win.hpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\inc\common\util\refcount.h"
 					>
 				</File>

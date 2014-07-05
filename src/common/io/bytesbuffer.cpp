@@ -41,12 +41,22 @@ char* CBytesBuffer::getRowDataPointer()
 
 void CBytesBuffer::popBytes( int32 nSize )
 {
+	assert( m_nDataSize > 0 );
+	assert( m_nDataSize >= nSize );
+
+	if ( m_nDataSize < 0 || m_nDataSize <= nSize )
+		return ;
+
 	m_pDataBeginPos += nSize;
 	m_nDataSize -= nSize;
 }
 
 char* CBytesBuffer::writebegin( int32 nWriteSize )
 {
+	assert( m_nDataSize >= 0 );
+	assert( nWriteSize > 0 );
+
+
 	if ( m_pBuf == NULL )
 	{
 		// Î´·ÖÅäÄÚ´æ

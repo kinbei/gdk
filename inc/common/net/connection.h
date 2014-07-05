@@ -1,12 +1,14 @@
 #ifndef _CONNECTION_H_
 #define _CONNECTION_H_
 
-#include <util/refcount.h>
-#include <net/address.h>
+#include <util/mutex.h>
 #include <net/socket.h>
-#include <net/connectionlistener.h>
-#include <io/bytesbuffer.h>
 #include <util/debug.h>
+#include <net/address.h>
+#include <util/refcount.h>
+#include <io/bytesbuffer.h>
+#include <net/connectionlistener.h>
+
 
 /**  
  * 连接类
@@ -199,10 +201,7 @@ public:
 	}
 
 	/**
-	 * 关闭连接
 	 *
-	 * \param 
-	 * \return 
 	 */
 	void close()
 	{
@@ -211,10 +210,7 @@ public:
 	}
 
 	/**
-	 * 获取句柄
 	 *
-	 * \param 
-	 * \return 
 	 */
 	SOCKET getHandle()
 	{
@@ -225,10 +221,7 @@ public:
 	}
 
 	/**
-	 * 获取网络地址
 	 *
-	 * \param 
-	 * \return 
 	 */
 	CAddressPtr getAddress()
 	{
@@ -236,10 +229,7 @@ public:
 	}
 
 	/**
-	 * 设置事件处理
 	 *
-	 * \param 
-	 * \return 
 	 */
 	void setListener( IConnectionListenerPtr pListener )
 	{
@@ -247,10 +237,7 @@ public:
 	}
 
 	/**
-	 * 获取事件处理
 	 *
-	 * \param 
-	 * \return 
 	 */
 	IConnectionListenerPtr getListener()
 	{
@@ -273,6 +260,14 @@ public:
 		return m_pRecvBuffer;
 	}
 
+	/**
+	 * 
+	 */
+	CMutex* getMutex()
+	{
+		return &m_Mutex;
+	}
+
 private:
 	// Socket
 	ISocketPtr m_pSocket;
@@ -284,6 +279,8 @@ private:
 	CBytesBufferPtr m_pSendBuffer;
 	// 接收缓冲区
 	CBytesBufferPtr m_pRecvBuffer;
+	// 
+	CMutex m_Mutex;
 };
 typedef TRefCountToObj<CConnection> CConnectionPtr;
 
