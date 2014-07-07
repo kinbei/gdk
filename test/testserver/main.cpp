@@ -20,8 +20,10 @@ INetIoWrappersPtr g_pNetWrappers = CNetIoWrappersFactory::createInstance();
 
 void sig_int(int sigi)
 {
-	NORMAL_REPORT("sig_int now");
+	NORMAL_REPORT("stop server now");
 	g_pNetWrappers->stop();
+	g_pNetWrappers->uninit();
+	exit(EXIT_SUCCESS);
 }
 
 // °ó¶¨µÄIP
@@ -135,6 +137,7 @@ int main( int argc, char* argv[] )
 		exit(EXIT_FAILURE);
 	}
 
+	g_pNetWrappers->stop();
 	g_pNetWrappers->uninit();
 	return EXIT_SUCCESS;
 }
