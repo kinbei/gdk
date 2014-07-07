@@ -170,9 +170,6 @@ void CBytesBuffer::clear()
 
 int32 CBytesBuffer::getAllocSize( int32 nSize /*= 4096 */ )
 {
-	if ( nSize < 4096 )
-		nSize = 4096;
-
 	long nPageSize = 0;
 
 #ifdef WINDOWS
