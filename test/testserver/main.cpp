@@ -20,6 +20,7 @@ INetIoWrappersPtr g_pNetWrappers = CNetIoWrappersFactory::createInstance();
 
 void sig_int(int sigi)
 {
+	NORMAL_REPORT("sig_int now");
 	g_pNetWrappers->stop();
 }
 
