@@ -37,3 +37,7 @@ make linux
 ./target/testclient ip port client-bytes-check-number client-connection-number
 
 ```
+
+## Other
+
+GDk is still in the exploratory stage, interface and code will be continuously optimized, hope everybody can give advice
