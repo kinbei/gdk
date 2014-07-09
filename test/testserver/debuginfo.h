@@ -25,7 +25,7 @@ public:
 	 */
 	virtual void debug( uint32 nThreadID, const char *pszFileName, uint32 nFileLine, const char* pszDebugInfo )
 	{
- 		fprintf( stdout, "> thread(%d) %s\n", nThreadID, pszDebugInfo);
+ 		fprintf( stdout, "> thread(%u) %s\n", nThreadID, pszDebugInfo);
  		fflush(stdout);
 	}
 	/**
@@ -33,7 +33,7 @@ public:
 	 */
 	virtual void info( uint32 nThreadID, const char *pszFileName, uint32 nFileLine, const char* pszDebugInfo )
 	{
-		fprintf( stdout, "> thread(%d) %s\n", nThreadID, pszDebugInfo);
+		fprintf( stdout, "> thread(%u) %s\n", nThreadID, pszDebugInfo);
 		fflush(stdout);
 	}
 	/**
@@ -41,7 +41,7 @@ public:
 	 */
 	virtual void error( uint32 nThreadID, const char *pszFileName, uint32 nFileLine, const char* pszDebugInfo )
 	{
-		fprintf( stdout, "> thread(%d) %s\n", nThreadID, pszDebugInfo);
+		fprintf( stdout, "> thread(%u) %s\n", nThreadID, pszDebugInfo);
 		fflush(stdout);
 	}
 	/**
@@ -49,7 +49,7 @@ public:
 	 */
 	virtual void warning( uint32 nThreadID, const char *pszFileName, uint32 nFileLine, const char* pszDebugInfo )
 	{
-		fprintf( stdout, "> thread(%d) %s\n", nThreadID, pszDebugInfo);
+		fprintf( stdout, "> thread(%u) %s\n", nThreadID, pszDebugInfo);
 		fflush(stdout);
 	}
 };
