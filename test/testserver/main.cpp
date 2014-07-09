@@ -108,7 +108,7 @@ int main( int argc, char* argv[] )
 	if ( ( signal( SIGINT, sig_int ) == SIG_ERR ) || ( signal( SIGTERM, sig_int ) == SIG_ERR ) )
 		exit(EXIT_FAILURE);
 
-	#define SIGUSER1 1234
+	#define SIGUSER1 1
 	if ( signal( SIGUSER1, signal_userdef ) == SIG_ERR )
 		exit(EXIT_FAILURE);
 

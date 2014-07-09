@@ -1,6 +1,7 @@
 #ifndef _EPOLL_NET_IO_WRAPPERS_H_
 #define _EPOLL_NET_IO_WRAPPERS_H_
 
+#include <map>
 #include <vector>
 #include <net/netpublic.h>
 #include <net/acceptor.h>
@@ -337,7 +338,7 @@ public:
 	/**
 	 * 
 	 */
-	virtual void getAllConnection( map<CConnector*, CConnectionPtr>& mapConnection )
+	virtual void getAllConnection( std::map<CConnection*, CConnectionPtr>& mapConnection )
 	{
 		mapConnection = m_mapConnection;
 	}
@@ -420,7 +421,7 @@ protected:
 	{
 		//
 		std::map< CConnection*, CConnectionPtr >::iterator iter_t;
-		iter_t = m_mapConnection.find();
+		iter_t = m_mapConnection.find( pConnection.get() );
 
 		assert( iter_t != m_mapConnection.end() );
 		if ( iter_t != m_mapConnection.end() )
