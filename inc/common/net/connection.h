@@ -147,7 +147,9 @@ public:
 	int32 send()
 	{
 		// send SEND_BUFFER_SIZE bytes each time at most
-		int32 nlen = MIN( m_pSendBuffer->getDataSize(), SEND_BUFFER_SIZE );
+		//TODO send SEND_BUFFER_SIZE bytes each time at most causes the send data too slow, send buffer growing
+		// int32 nlen = MIN( m_pSendBuffer->getDataSize(), SEND_BUFFER_SIZE );
+		int32 nlen = m_pSendBuffer->getDataSize();
 
 		// On success, these calls return the number of characters sent.  
 		// On error, -1 is returned, and errno is set appropriately.

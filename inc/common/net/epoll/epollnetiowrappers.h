@@ -273,7 +273,7 @@ public:
 								log_debug( "Connection(%p) add epollout", pConnection.get() );
 
 								//
-								events[i].events |= EPOLLOUT;
+								events[i].events = EPOLLIN | EPOLLOUT | EPOLLHUP | EPOLLERR;
 
 								if( modifyConnectionEvent( pConnection, &events[i] ) != 0 )
 								{
