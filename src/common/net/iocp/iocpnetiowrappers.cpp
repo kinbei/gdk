@@ -172,6 +172,9 @@ UINT WINAPI CIocpNetIoWrappers::WorkerThread( LPVOID pParam )
 					break;
 
 				CConnectionPtr pConnection = new CConnection( new CTCPSocket( pAcceptPreIoData->m_sAcceptSocket ), new CAddress( lpRemoteSockaddr ) );
+				
+				//TODO maybe multiple threads to access m_mapConnection, need to add a locker
+				pThis->m_mapConnection[ pConnection.get() ] = pConnection;
 
 				// Associate the connection socket with the completion port
 				if( ::CreateIoCompletionPort( (HANDLE)pConnection->getHandle(), pThis->m_hIOCompletionPort, (ULONG_PTR)NULL, 0 ) == NULL )
@@ -202,6 +205,9 @@ UINT WINAPI CIocpNetIoWrappers::WorkerThread( LPVOID pParam )
 				CConnectorPtr pConnector = pConnectPreIoData->m_pConnector;
 				IConnectorListenerPtr pListener = pConnector->getListener();
 				CConnectionPtr pConnection = new CConnection( new CTCPSocket( pConnector->getHandle() ), pConnector->getAddress() );
+				
+				//TODO maybe multiple threads to access m_mapConnection, need to add a locker
+				pThis->m_mapConnection[ pConnection.get() ] = pConnection;
 
 				if ( !bRet )
 				{
@@ -236,10 +242,7 @@ UINT WINAPI CIocpNetIoWrappers::WorkerThread( LPVOID pParam )
 					log_debug( "Receive|Error(%d)", GetLastNetError() );
 					break;
 					
-					if ( pListener != NULL )
-						pListener->onClose( pConnection );
-
-					pConnection->close();
+					pThis->onConnectionClose( pConnection );
 					break;
 				}
 
@@ -248,10 +251,7 @@ UINT WINAPI CIocpNetIoWrappers::WorkerThread( LPVOID pParam )
 					log_debug( "Receive|dwNumberOfByte is zero" );
 					break;
 
-					if ( pListener != NULL )
-						pListener->onClose( pConnection );
-
-					pConnection->close();
+					pThis->onConnectionClose( pConnection );
 					break;
 				}
 
@@ -290,10 +290,7 @@ UINT WINAPI CIocpNetIoWrappers::WorkerThread( LPVOID pParam )
 				{
 					log_debug( "Send|Connection(%p) Error(%d)", pConnection.get(), GetLastNetError() );
 
-					if ( pListener != NULL )
-						pListener->onClose( pConnection );
-					pConnection->close();
-
+					pThis->onConnectionClose( pConnection );
 					break;
 				}
 
@@ -307,10 +304,7 @@ UINT WINAPI CIocpNetIoWrappers::WorkerThread( LPVOID pParam )
 				{
 					log_error( "Send|Connection(%p) Error when postSend", pConnection.get() );
 
-					if ( pListener != NULL )
-						pListener->onClose( pConnection );
-					pConnection->close();
-
+					pThis->onConnectionClose( pConnection );
 					break;
 				}
 
@@ -594,6 +588,27 @@ int32 CIocpNetIoWrappers::postAccept( CAcceptorPtr pAcceptor )
 
 	preIoData.incRef();
 	return 0;
+}
+
+void CIocpNetIoWrappers::getAllConnection( std::map<CConnection*, CConnectionPtr>& mapConnection )
+{
+	mapConnection = m_mapConnection;
+}
+
+void CIocpNetIoWrappers::onConnectionClose( CConnectionPtr pConnection )
+{
+	std::map< CConnection*, CConnectionPtr >::iterator iter_t;
+	iter_t = m_mapConnection.find( pConnection.get() );
+
+	assert( iter_t != m_mapConnection.end() );
+	if ( iter_t != m_mapConnection.end() )
+		m_mapConnection.erase( iter_t );
+
+	IConnectionListenerPtr pListener = pConnection->getListener();
+	if ( pListener != NULL )
+		pListener->onClose( pConnection );
+
+	pConnection->close();
 }
 
 #endif

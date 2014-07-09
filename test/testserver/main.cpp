@@ -26,6 +26,23 @@ void sig_int(int sigi)
 	exit(EXIT_SUCCESS);
 }
 
+void signal_userdef( int sigi )
+{
+	std::map<CConnection*, CConnectionPtr> mapConnection;
+	g_pNetWrappers->getAllConnection( mapConnection );
+
+	std::map<CConnection*, CConnectionPtr>::iterator iter_t;
+	for ( iter_t = mapConnection.begin(); iter_t != mapConnection.end(); iter_t++ )
+	{
+		CConnectionPtr pConnection = iter_t->second;
+
+		int32 nSendSize = pConnection->getSendBuffer()->getDataSize();
+		int32 nRecvSize = pConnection->getRecvBuffer()->getDataSize();
+
+		log_debug( "Connection(%p) sendsize(%d) recvsize(%d)", pConnection.get(), nSendSize, nRecvSize );
+	}
+}
+
 // 绑定的IP
 std::string g_strIP;
 // 绑定的端口
@@ -88,7 +105,11 @@ int main( int argc, char* argv[] )
 		exit(EXIT_FAILURE);
 	}
 
-	if( ( signal( SIGINT, sig_int ) == SIG_ERR ) || ( signal( SIGTERM, sig_int ) == SIG_ERR ) )
+	if ( ( signal( SIGINT, sig_int ) == SIG_ERR ) || ( signal( SIGTERM, sig_int ) == SIG_ERR ) )
+		exit(EXIT_FAILURE);
+
+	#define SIGUSER1 1234
+	if ( signal( SIGUSER1, signal_userdef ) == SIG_ERR )
 		exit(EXIT_FAILURE);
 
 	int32 retCode = 0;

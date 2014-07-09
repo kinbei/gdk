@@ -17,10 +17,7 @@ class CConnection
 {
 public:
 	/**
-	 * 函数说明
 	 *
-	 * \param 
-	 * \return 
 	 */
 	CConnection( ISocketPtr pSocket, CAddressPtr pAddress )
 	{
@@ -28,19 +25,16 @@ public:
 		m_pSocket = pSocket;
 		//
 		m_pAddress = pAddress;
-		// 事件处理
+		// 
 		m_pListener = NULL;
-		// 发送缓冲区
+		// send bytes buffer
 		m_pSendBuffer = new CBytesBuffer();
-		// 接收缓冲区
+		// recv bytes buffer
 		m_pRecvBuffer = new CBytesBuffer();
 	}
 
 	/**
-	 * 函数说明
 	 *
-	 * \param 
-	 * \return 
 	 */
 	virtual ~CConnection()
 	{
@@ -48,11 +42,11 @@ public:
 		m_pSocket = NULL;
 		//
 		m_pAddress = NULL;
-		// 事件处理
+		// 
 		m_pListener = NULL;
-		// 发送缓冲区
+		// 
 		m_pSendBuffer = NULL;
-		// 接收缓冲区
+		// 
 		m_pRecvBuffer = NULL;
 	}
 

@@ -197,7 +197,6 @@ public:
 						}
 
 						CConnectionPtr pConnection = new CConnection( new CTCPSocket( pConnector->getHandle() ), pConnector->getAddress() );
-
 						if( addConnection( pConnection ) != 0 )
 							continue ;
 
@@ -228,7 +227,6 @@ public:
 						}
 
 						CAddressPtr pAddress = new CAddress( &addr );
-
 						CConnectionPtr pConnection = new CConnection( new CTCPSocket( pRemoteSocket->getHandle() ), pAddress );
 
 						if( addConnection( pConnection ) != 0 )
@@ -336,6 +334,14 @@ public:
 
 	}
 
+	/**
+	 * 
+	 */
+	virtual void getAllConnection( map<CConnector*, CConnectionPtr>& mapConnection )
+	{
+		mapConnection = m_mapConnection;
+	}
+
 protected:
 	/**
 	 * 
@@ -369,6 +375,7 @@ protected:
 			return GetLastNetError();
 		}
 
+		m_mapConnection[ pConnection.get() ] = pConnection;
 		return 0;
 	}
 
@@ -411,6 +418,15 @@ protected:
 	 */
 	void onConnectionClose( CConnectionPtr pConnection )
 	{
+		//
+		std::map< CConnection*, CConnectionPtr >::iterator iter_t;
+		iter_t = m_mapConnection.find();
+
+		assert( iter_t != m_mapConnection.end() );
+		if ( iter_t != m_mapConnection.end() )
+			m_mapConnection.erase( iter_t );
+
+		// 
 		IConnectionListenerPtr pListener = pConnection->getListener();
 		if ( pListener == NULL )
 		{
@@ -469,6 +485,8 @@ private:
 	std::vector<CAcceptorPtr> m_vecAcceptor;
 	// Connector列表, 用于资源释放
 	std::vector<CConnectorPtr> m_vecConnector;
+	// 
+	std::map< CConnection*, CConnectionPtr > m_mapConnection;
 };
 typedef TRefCountToObj<CEpollNetIoWrappers> CEpollNetIoWrappersPtr;
 

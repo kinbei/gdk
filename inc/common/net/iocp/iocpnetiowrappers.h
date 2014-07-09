@@ -78,6 +78,11 @@ public:
 	 */
 	virtual void stop();
 
+	/**
+	 * 
+	 */
+	virtual void getAllConnection( std::map<CConnection*, CConnectionPtr>& mapConnection );
+
 protected:
 	/**
 	 * 获取系统CPU个数
@@ -128,13 +133,20 @@ protected:
 	*/
 	int32 postAccept( CAcceptorPtr pAcceptor );
 
+	/**
+	 * 
+	 */
+	void onConnectionClose( CConnectionPtr pConnection );
+
 private:
-	// 完成端口
+	// 
 	HANDLE m_hIOCompletionPort;
-	// Acceptor列表,  用于资源释放
+	// for resource release
 	std::vector<CAcceptorPtr> m_vecAcceptor;
-	// Connector列表, 用于资源释放
+	// for resource release
 	std::vector<CConnectorPtr> m_vecConnector;
+	// the map of connection, for resource release and get all of connection
+	std::map< CConnection*, CConnectionPtr > m_mapConnection;
 };
 typedef TRefCountToObj<CIocpNetIoWrappers> CIocpNetIoWrappersPtr;
 
