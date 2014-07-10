@@ -31,54 +31,42 @@ public:
 
 		fprintf( file, "> thread(0x%08X) %s\r\n", nThreadID, pszDebugInfo );
 		fclose( file );
-
-// 		fprintf( stdout, "> thread(0x%08X) %s\n", nThreadID, pszDebugInfo );
-// 		fflush(stdout);
 	}
 	/**
 	 * 
 	 */
 	virtual void info( uint32 nThreadID, const char *pszFileName, uint32 nFileLine, const char* pszDebugInfo )
 	{
-// 		FILE* file = NULL;
-// 		if (   (  file = fopen("d:\\client.log", "ab" )  ) == NULL   )
-// 			return ;
-// 
-// 		fprintf( file, "> thread(0x%08X) %s\r\n", nThreadID, pszDebugInfo );
-// 		fclose( file );
-// 
-// 		fprintf( stdout, "> thread(0x%08X) %s\n", nThreadID, pszDebugInfo );
-// 		fflush(stdout);
+		FILE* file = NULL;
+		if (   (  file = fopen("d:\\client.log", "ab" )  ) == NULL   )
+			return ;
+
+		fprintf( file, "> thread(0x%08X) %s\r\n", nThreadID, pszDebugInfo );
+		fclose( file );
 	}
 	/**
 	 * 
 	 */
 	virtual void error( uint32 nThreadID, const char *pszFileName, uint32 nFileLine, const char* pszDebugInfo )
 	{
-// 		FILE* file = NULL;
-// 		if (   (  file = fopen("d:\\client.log", "ab" )  ) == NULL   )
-// 			return ;
-// 
-// 		fprintf( file, "> thread(0x%08X) %s\r\n", nThreadID, pszDebugInfo );
-// 		fclose( file );
-// 
-// 		fprintf( stdout, "> thread(0x%08X) %s\n", nThreadID, pszDebugInfo );
-// 		fflush(stdout);
+		FILE* file = NULL;
+		if (   (  file = fopen("d:\\client.log", "ab" )  ) == NULL   )
+			return ;
+
+		fprintf( file, "> thread(0x%08X) %s\r\n", nThreadID, pszDebugInfo );
+		fclose( file );
 	}
 	/**
 	 * 
 	 */
 	virtual void warning( uint32 nThreadID, const char *pszFileName, uint32 nFileLine, const char* pszDebugInfo )
 	{
-// 		FILE* file = NULL;
-// 		if (   (  file = fopen("d:\\client.log", "ab" )  ) == NULL   )
-// 			return ;
-// 
-// 		fprintf( file, "> thread(0x%08X) %s\r\n", nThreadID, pszDebugInfo );
-// 		fclose( file );
-// 
-// 		fprintf( stdout, "> thread(0x%08X) %s\n", nThreadID, pszDebugInfo );
-// 		fflush(stdout);
+		FILE* file = NULL;
+		if (   (  file = fopen("d:\\client.log", "ab" )  ) == NULL   )
+			return ;
+
+		fprintf( file, "> thread(0x%08X) %s\r\n", nThreadID, pszDebugInfo );
+		fclose( file );
 	}
 };
 
