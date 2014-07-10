@@ -2,6 +2,7 @@
 #define _DEBUG_H_
 
 #include <basictype.h>
+#include <util/thread.h>
 #include <util/refcount.h>
 #include <stdarg.h>
 
@@ -53,7 +54,19 @@ public:
 	/**
 	 * 
 	 */
-	virtual void debug( const char *pszFileName, uint32 nFileLine, const char* pszDebugInfo ) = 0;
+	virtual void debug( uint32 nThreadID, const char *pszFileName, uint32 nFileLine, const char* pszDebugInfo ) = 0;
+	/**
+	 * 
+	 */
+	virtual void info( uint32 nThreadID, const char *pszFileName, uint32 nFileLine, const char* pszDebugInfo ) = 0;
+	/**
+	 * 
+	 */
+	virtual void error( uint32 nThreadID, const char *pszFileName, uint32 nFileLine, const char* pszDebugInfo ) = 0;
+	/**
+	 * 
+	 */
+	virtual void warning( uint32 nThreadID, const char *pszFileName, uint32 nFileLine, const char* pszDebugInfo ) = 0;
 };
 typedef TRefCountToObj<IDebug> IDebugPtr;
 
@@ -87,13 +100,49 @@ public:
 	/**
 	 * 
 	 */
-	static void debug( const char *pszFileName, uint32 nFileLine, const char *pszFmt, ... )
+	static void debug( uint32 nThreadID, const char *pszFileName, uint32 nFileLine, const char *pszFmt, ... )
 	{
 		if ( ms_pDebug != NULL )
 		{
 			char szBuf[1024] = {0};
 			WRITE_VAR_LOG( szBuf, pszFmt );
-			ms_pDebug->debug( pszFileName, nFileLine, szBuf );
+			ms_pDebug->debug( nThreadID, pszFileName, nFileLine, szBuf );
+		}
+	}
+	/**
+	 * 
+	 */
+	static void info( uint32 nThreadID, const char *pszFileName, uint32 nFileLine, const char *pszFmt, ... )
+	{
+		if ( ms_pDebug != NULL )
+		{
+			char szBuf[1024] = {0};
+			WRITE_VAR_LOG( szBuf, pszFmt );
+			ms_pDebug->info( nThreadID, pszFileName, nFileLine, szBuf );
+		}
+	}
+	/**
+	 * 
+	 */
+	static void error( uint32 nThreadID, const char *pszFileName, uint32 nFileLine, const char *pszFmt, ... )
+	{
+		if ( ms_pDebug != NULL )
+		{
+			char szBuf[1024] = {0};
+			WRITE_VAR_LOG( szBuf, pszFmt );
+			ms_pDebug->error( nThreadID, pszFileName, nFileLine, szBuf );
+		}
+	}
+	/**
+	 * 
+	 */
+	static void warning( uint32 nThreadID, const char *pszFileName, uint32 nFileLine, const char *pszFmt, ... )
+	{
+		if ( ms_pDebug != NULL )
+		{
+			char szBuf[1024] = {0};
+			WRITE_VAR_LOG( szBuf, pszFmt );
+			ms_pDebug->warning( nThreadID, pszFileName, nFileLine, szBuf );
 		}
 	}
 
@@ -103,6 +152,9 @@ private:
 };
 
 
-#define DEBUG_INFO( fmt, ... ) CDebugMgr::debug( __FILE__, __LINE__, fmt, ##__VA_ARGS__ )
+#define log_debug( fmt, ... ) CDebugMgr::debug( getCurrentThreadID(), __FILE__, __LINE__, fmt, ##__VA_ARGS__ )
+#define log_info( fmt, ... ) CDebugMgr::info( getCurrentThreadID(), __FILE__, __LINE__, fmt, ##__VA_ARGS__ )
+#define log_error( fmt, ... ) CDebugMgr::error( getCurrentThreadID(), __FILE__, __LINE__, fmt, ##__VA_ARGS__ )
+#define log_warning( fmt, ... ) CDebugMgr::warning( getCurrentThreadID(), __FILE__, __LINE__, fmt, ##__VA_ARGS__ )
 
 #endif

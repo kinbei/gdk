@@ -56,7 +56,7 @@ int32 CTCPSocket::connect( const char *lpstrIP, uint16 nPort )
 		return 0;
 }
 
-int32 CTCPSocket::listen( const char *lpstrIP, uint16 nPort, int nBackLog )
+int32 CTCPSocket::listen( const std::string& strIP, uint16 nPort, int nBackLog /* = SOMAXCONN */ )
 {
 	int nOn = 1;
 
@@ -71,7 +71,7 @@ int32 CTCPSocket::listen( const char *lpstrIP, uint16 nPort, int nBackLog )
 	struct sockaddr_in addr;
 	memset( &addr, 0x00, sizeof(struct sockaddr_in) );
 	addr.sin_family = AF_INET;
-	addr.sin_addr.s_addr = inet_addr( lpstrIP );
+	addr.sin_addr.s_addr = inet_addr( strIP.c_str() );
 	addr.sin_port = htons( (short)(nPort) );
 
 	// windows: If no error occurs, bind returns zero. 
@@ -79,12 +79,6 @@ int32 CTCPSocket::listen( const char *lpstrIP, uint16 nPort, int nBackLog )
 	// unix: On success, zero is returned. On error, -1 is returned, and errno is set appropriately. 
 	if( SOCKET_ERROR == ::bind( this->m_Socket, (struct sockaddr*)&addr, sizeof(struct sockaddr)) )
 		return GetLastNetError();
-
-	//TODO listen 这里需要设置接收缓冲区?
-	// 设置接收缓冲区
-// 	int nRecvSize = 1024*32;
-// 	if ( -1 == setsockopt( m_Socket, SOL_SOCKET, SO_SNDBUF, (const char*)&nRecvSize, sizeof(int) ) )
-// 		return GetLastNetError();
 
 	// 监听端口
 	if( -1 == ::listen( m_Socket, nBackLog ) )

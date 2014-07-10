@@ -9,7 +9,6 @@
 
 #ifdef WINDOWS
 
-#include <process.h>
 #include <net/iocp/iocpdef.h>
 #include <util/debug.h>
 
@@ -69,7 +68,7 @@ public:
 	* \param nTimeOutMilliseconds  超时的时间, 单位为毫秒
 	* \return 无
 	*/
-	virtual int32 run( int32 nTimeOutMilliseconds );
+	virtual int32 run( int32 nTimeOutMilliseconds = 100 );
 
 	/**
 	 * stop
@@ -78,6 +77,11 @@ public:
 	 * \return 
 	 */
 	virtual void stop();
+
+	/**
+	 * 
+	 */
+	virtual void getAllConnection( std::map<CConnection*, CConnectionPtr>& mapConnection );
 
 protected:
 	/**
@@ -129,13 +133,20 @@ protected:
 	*/
 	int32 postAccept( CAcceptorPtr pAcceptor );
 
+	/**
+	 * 
+	 */
+	void onConnectionClose( CConnectionPtr pConnection );
+
 private:
-	// 完成端口
+	// 
 	HANDLE m_hIOCompletionPort;
-	// Acceptor列表,  用于资源释放
+	// for resource release
 	std::vector<CAcceptorPtr> m_vecAcceptor;
-	// Connector列表, 用于资源释放
+	// for resource release
 	std::vector<CConnectorPtr> m_vecConnector;
+	// the map of connection, for resource release and get all of connection
+	std::map< CConnection*, CConnectionPtr > m_mapConnection;
 };
 typedef TRefCountToObj<CIocpNetIoWrappers> CIocpNetIoWrappersPtr;
 

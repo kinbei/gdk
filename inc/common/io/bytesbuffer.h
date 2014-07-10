@@ -47,7 +47,7 @@ public:
 	/**
 	 * 完成对缓冲区的写操作
 	 */
-	void writecommit( void );
+	void writecommit( int32 nRealWriteSize );
 
 	/**
 	 * 返回缓存的有效长度

@@ -3,10 +3,11 @@
 *.lo
 *.o
 *.obj
-/Debug
-/*.ncb
-/*.suo
-/*.user
+*.ncb
+*.suo
+*.user
+/build/vs2008/Debug
+/build/vs2008/Release
 
 # Compiled Dynamic libraries
 *.so
@@ -17,7 +18,6 @@
 *.lai
 *.la
 *.a
-*.lib
 
 # Executables
 *.exe

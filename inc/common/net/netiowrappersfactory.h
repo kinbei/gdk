@@ -3,6 +3,7 @@
 
 #include <net/netiowrappers.h>
 #include <net/iocp/iocpnetiowrappers.h>
+#include <net/epoll/epollnetiowrappers.h>
 
 /**  
  * 网络IO模型工厂类
@@ -22,7 +23,7 @@ public:
 #ifdef WINDOWS
 		return new CIocpNetIoWrappers();
 #else
-		return (INetIoWrappers*)NULL;
+		return new CEpollNetIoWrappers();
 #endif // WINDOWS
 		
 	}

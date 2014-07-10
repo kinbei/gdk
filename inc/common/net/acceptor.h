@@ -4,6 +4,7 @@
 #include <basictype.h>
 #include <net/tcpsocket.h>
 #include <net/acceptorlistener.h>
+#include <string>
 
 /**
  * 连接接收器
@@ -30,7 +31,13 @@ public:
 	 * \param nBackLog 
 	 * \return 返回0表示成功, 非0表示失败
 	 */
-	int32 open( const char *lpstrIP, uint16 nPort, int nBackLog );
+	int32 open( const std::string& strIP, uint16 nPort );
+
+	/**
+	 * accept a new connection
+	 * for epoll, iocp use AcceptEx to accept a new connection
+	 */
+	CTCPSocket* accept( struct sockaddr *lpAddr, socklen_t *nAddrlen );
 
 	/**
 	 * 获取句柄

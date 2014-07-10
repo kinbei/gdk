@@ -1,10 +1,49 @@
-gdk
+GDK(Game Develop Kit)
 ===
 
-Game Develop Kit
+## Summary
+```
+1. the return type of all the error code are int32, success shall return 0. Otherwise, failed
+2. //TODO means todo list
+3. //!NOTE means sth need attention
+```
 
-Note: 目前不支持自动构建, 只实现了 **bytesbuffer**, **网络相关** 类
 
-1. 所有错误码的返回类型为 int32, 0表示成功, 非0表示失败
-2. //TODO 作为todo list 的统一标识
-3. //!NOTE  表示注意事项
+## Compatibility
+```
+GDK is cross-platform. Some platform/compiler combinations which have been tested are shown as follows.
+* Visual C++ 2008 on Windows (64-bit)
+* g++ (GCC) 4.1.2 20070115 (prerelease) (SUSE Linux)
+```
+
+
+## Build
+```
+export GIT_SSL_NO_VERIFY=true
+git clone https://github.com/sleepwom/gdk.git --branch dev
+cd gdk
+mkdir lib
+mkdir target
+make linux
+```
+
+
+## Run
+```
+# run server
+./target/testserver ip port client-bytes-check-number
+
+# run client
+./target/testclient ip port client-bytes-check-number client-connection-number
+
+```
+
+## Other
+
+GDk is still in the exploratory stage, interface and code will be continuously optimized, hope everybody can give advice
+
+## BUG List
+```
+#13 testclient Failed to add connection under unix
+#17 error thread id under unix 
+```

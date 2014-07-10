@@ -9,15 +9,38 @@
 #include "myacceptor.h"
 #include "debuginfo.h"
 
-#define VERSION_STRING "0.1.6.0"
-#define ERROR_REPORT(fmt, ...) { fprintf( stderr, "> " fmt "\n", ##__VA_ARGS__); fflush(stderr); }
-#define NORMAL_REPORT(fmt, ...) { fprintf( stdout, "> " fmt "\n", ##__VA_ARGS__); fflush(stdout); }
+#define GDK_VERSION_MAJOR 0
+#define GDK_VERSION_MINOR 0
+#define GDK_VERSION_REVISION 1
+#define GDK_STRING_EXPAND(X) #X
+#define GDK_STRING(X) GDK_STRING_EXPAND(X)
+#define GDK_VERSION ( "GDK." GDK_STRING(GDK_VERSION_MAJOR) "." GDK_STRING(GDK_VERSION_MINOR) "." GDK_STRING(GDK_VERSION_REVISION) )
 
 INetIoWrappersPtr g_pNetWrappers = CNetIoWrappersFactory::createInstance();
 
 void sig_int(int sigi)
 {
+	NORMAL_REPORT("stop server now");
 	g_pNetWrappers->stop();
+	g_pNetWrappers->uninit();
+	exit(EXIT_SUCCESS);
+}
+
+void signal_userdef( int sigi )
+{
+	std::map<CConnection*, CConnectionPtr> mapConnection;
+	g_pNetWrappers->getAllConnection( mapConnection );
+
+	std::map<CConnection*, CConnectionPtr>::iterator iter_t;
+	for ( iter_t = mapConnection.begin(); iter_t != mapConnection.end(); iter_t++ )
+	{
+		CConnectionPtr pConnection = iter_t->second;
+
+		int32 nSendSize = pConnection->getSendBuffer()->getDataSize();
+		int32 nRecvSize = pConnection->getRecvBuffer()->getDataSize();
+
+		log_debug( "Connection(%p) sendsize(%d) recvsize(%d)", pConnection.get(), nSendSize, nRecvSize );
+	}
 }
 
 // 绑定的IP
@@ -73,7 +96,7 @@ int32 parseCmdParam( int argc, char* argv[] )
 
 int main( int argc, char* argv[] )
 {
-	NORMAL_REPORT("VERSION: %s", VERSION_STRING);
+	NORMAL_REPORT("VERSION: %s", GDK_VERSION);
 
 	// 获取参数
 	if ( parseCmdParam( argc, argv ) != 0 )
@@ -82,19 +105,17 @@ int main( int argc, char* argv[] )
 		exit(EXIT_FAILURE);
 	}
 
+	if ( ( signal( SIGINT, sig_int ) == SIG_ERR ) || ( signal( SIGTERM, sig_int ) == SIG_ERR ) )
+		exit(EXIT_FAILURE);
+
+	#define SIGUSER1 1
+	if ( signal( SIGUSER1, signal_userdef ) == SIG_ERR )
+		exit(EXIT_FAILURE);
+
 	int32 retCode = 0;
-	CSocketLibLoader SockLibLoader;
 
-	if( ( signal( SIGINT, sig_int ) == SIG_ERR ) || ( signal( SIGTERM, sig_int ) == SIG_ERR ) )
-		exit(EXIT_FAILURE);
-
-	// Socket库初始化
-	retCode = SockLibLoader.load();
-	if ( retCode != 0 )
-	{
-		ERROR_REPORT("Failed to loadSocketLib (%d)", retCode);
-		exit(EXIT_FAILURE);
-	}
+	//
+	CDebugMgr::setDebug( new CMyDebug() );
 
 	if ( g_pNetWrappers == NULL )
 	{
@@ -112,7 +133,7 @@ int main( int argc, char* argv[] )
 
 	// 创建 Accpetor 
 	CMyAcceptorPtr pAcceptor = new CMyAcceptor();
-	retCode = pAcceptor->open( g_strIP.c_str(), g_nPort, SOMAXCONN );
+	retCode = pAcceptor->open( g_strIP, g_nPort );
 	if ( retCode != 0 )
 	{
 		ERROR_REPORT("Failed to init Acceptor (%d)", retCode);
@@ -130,13 +151,14 @@ int main( int argc, char* argv[] )
 	NORMAL_REPORT("Start Runing");
 
 	//
-	retCode = g_pNetWrappers->run( 100 );
+	retCode = g_pNetWrappers->run();
 	if ( retCode != 0 )
 	{
 		ERROR_REPORT("Failed to run NetDriver (%d)", retCode);
 		exit(EXIT_FAILURE);
 	}
 
+	g_pNetWrappers->stop();
 	g_pNetWrappers->uninit();
 	return EXIT_SUCCESS;
 }

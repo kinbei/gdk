@@ -1,5 +1,8 @@
 #include <net/iocp/iocpnetiowrappers.h>
+#include <util/thread.h>
 #include <util/scopeptr.h>
+#include <net/socketlibloader.h>
+
 
 #ifdef WINDOWS
 
@@ -16,6 +19,11 @@ CIocpNetIoWrappers::~CIocpNetIoWrappers()
 
 int32 CIocpNetIoWrappers::init()
 {
+	// initiates use of the Winsock DLL by a process
+	int32 nRetCode = CSocketLibLoader::load();
+	if ( nRetCode != 0 )
+		return nRetCode;
+
 	// Create Completion Port
 	m_hIOCompletionPort = ::CreateIoCompletionPort( INVALID_HANDLE_VALUE, NULL, NULL, 0 );
 
@@ -29,6 +37,8 @@ int32 CIocpNetIoWrappers::init()
 void CIocpNetIoWrappers::uninit()
 {
 	DISABLE_UNREFERENCE( ::CloseHandle( m_hIOCompletionPort ) );
+
+	CSocketLibLoader::unload();
 }
 
 int32 CIocpNetIoWrappers::addConnector( CConnectorPtr pConnector )
@@ -53,7 +63,6 @@ int32 CIocpNetIoWrappers::addAcceptor( CAcceptorPtr pAcceptor )
 	if( ::CreateIoCompletionPort( (HANDLE)pAcceptor->getHandle(), m_hIOCompletionPort, (ULONG_PTR)NULL, 0 ) == NULL )
 		return GetLastNetError();
 
-	// 投递Accept请求
 	if( postAccept( pAcceptor ) != 0 )
 		return -1;
 
@@ -66,34 +75,16 @@ int32 CIocpNetIoWrappers::run( int32 nTimeOutMilliseconds )
 {
 	HANDLE* hThreads = new HANDLE[getCPUCount() * 2 + 2];
 
-	// 创建工作线程
+	// create work thread
 	for ( uint32 i = 0; i < getCPUCount() * 2 + 2; i++ )
 	{
-		uint32 nThreadID = 0;
-		HANDLE hThread = INVALID_HANDLE_VALUE;
-
-		// _beginthreadex 创建出来的线程, 需要自己调用 CloseHandle()
-		//TODO 线程未结束, 调用 closehandle 是否会有影响
-		hThread = (HANDLE)_beginthreadex( NULL, 0, WorkerThread, (LPVOID)this, 0, &nThreadID );
-
-		// 创建线程失败
-		if ( hThread == INVALID_HANDLE_VALUE )
-		{
-			delete[] hThreads;
-			return GetLastNetError();
-		}
-
-		hThreads[ i ] = hThread;
+		CThreadPtr pThread = CThreadFactory::createThread();
+		int32 nRetCode = pThread->initialize( WorkerThread, (LPVOID)this );
+		if ( nRetCode != 0 )
+			return nRetCode;
 	}
 
-	for ( uint32 i = 0; i < getCPUCount() * 2 + 2; i++ )
-	{
-		::WaitForSingleObject( hThreads[ i ], INFINITE );
-		::CloseHandle( hThreads[ i ] );
-	}
-
-	delete[] hThreads;
-
+	CThreadFactory::finalize();
 	return 0;
 }
 
@@ -105,7 +96,7 @@ void CIocpNetIoWrappers::stop()
 	for ( std::vector<CConnectorPtr>::iterator iter_t = m_vecConnector.begin(); iter_t != m_vecConnector.end(); iter_t++ )
 		(*iter_t)->close();
 
-	for ( int32 i = 0; i < ( (int32)getCPUCount() * 2 + 2 ); i++ )
+	for ( int32 i = 0; i < ( (int32)(getCPUCount() * 2 + 2) ); i++ )
 		DISABLE_UNREFERENCE( ::PostQueuedCompletionStatus( m_hIOCompletionPort, 0, 0, NULL ) );
 }
 
@@ -141,7 +132,7 @@ UINT WINAPI CIocpNetIoWrappers::WorkerThread( LPVOID pParam )
 		LPBASE_PRE_IO_DATA lpPreIoData = CONTAINING_RECORD( lpOverlapped, BASE_PRE_IO_DATA, m_OverLapped );
 		if ( lpPreIoData == NULL )
 		{
-			DEBUG_INFO( "lpPreIoData is null" );
+			log_error( "lpPreIoData is null" );
 			continue; 
 		}
 
@@ -149,12 +140,12 @@ UINT WINAPI CIocpNetIoWrappers::WorkerThread( LPVOID pParam )
 		{
 		case BASE_PRE_IO_DATA::IOCP_OPERATOR_ACCEPT:
 			{
-				CScopePtr<ACCEPT_PRE_IO_DATA> lpAcceptPreIoData( (LPACCEPT_PRE_IO_DATA)lpPreIoData );
-				CAcceptorPtr pAcceptor = lpAcceptPreIoData->m_pAcceptor;
+				CScopePtr<ACCEPT_PRE_IO_DATA> pAcceptPreIoData( (LPACCEPT_PRE_IO_DATA)lpPreIoData );
+				CAcceptorPtr pAcceptor = pAcceptPreIoData->m_pAcceptor;
 				
 				if ( !bRet )
 				{
-					DEBUG_INFO( "Accept|Error(0x%08X)", GetLastNetError() );
+					log_warning( "Accept|Error(%d)", GetLastNetError() );
 					break;
 				}
 
@@ -165,7 +156,7 @@ UINT WINAPI CIocpNetIoWrappers::WorkerThread( LPVOID pParam )
 				int RemoteSockaddrLength = 0;
 				DWORD dwReceiveDataLength = 0; //!NOTE: AcceptEx函数传入的 dwReceiveDataLength 为0, GetAcceptExSockaddrs 也必须传0
 
-				CWSAExtensionFunction::GetAcceptExSockaddrs( lpAcceptPreIoData->m_szAcceptOutputBuffer, 
+				CWSAExtensionFunction::GetAcceptExSockaddrs( pAcceptPreIoData->m_szAcceptOutputBuffer, 
 					dwReceiveDataLength, 
 					sizeof(SOCKADDR_IN) + 16,  
 					sizeof(SOCKADDR_IN) + 16, 
@@ -180,12 +171,15 @@ UINT WINAPI CIocpNetIoWrappers::WorkerThread( LPVOID pParam )
 				if ( retCode != 0 )
 					break;
 
-				CConnectionPtr pConnection = new CConnection( new CTCPSocket( lpAcceptPreIoData->m_sAcceptSocket ), new CAddress( lpRemoteSockaddr ) );
+				CConnectionPtr pConnection = new CConnection( new CTCPSocket( pAcceptPreIoData->m_sAcceptSocket ), new CAddress( lpRemoteSockaddr ) );
+				
+				//TODO maybe multiple threads to access m_mapConnection, need to add a locker
+				pThis->m_mapConnection[ pConnection.get() ] = pConnection;
 
 				// Associate the connection socket with the completion port
 				if( ::CreateIoCompletionPort( (HANDLE)pConnection->getHandle(), pThis->m_hIOCompletionPort, (ULONG_PTR)NULL, 0 ) == NULL )
 				{
-					DEBUG_INFO( "Accept|Connection(0x%08X) Error(%d) when associate Iocp", pConnection, GetLastNetError() );
+					log_warning( "Accept|Connection(%p) Error(%d) when associate Iocp", pConnection.get(), GetLastNetError() );
 					pConnection->close();
 					break;
 				}
@@ -193,90 +187,114 @@ UINT WINAPI CIocpNetIoWrappers::WorkerThread( LPVOID pParam )
 				// 
 				pAcceptor->getListener()->onAccept( pConnection );
 
-				// 投递 WSASend & WSARecv 
 				if( pThis->postSend( pConnection ) != 0 || pThis->postRecv( pConnection ) != 0 )
 				{
-					DEBUG_INFO( "Accept|Connection(0x%08X) Error when postSend or postRecv", pConnection );
+					log_warning( "Accept|Connection(%p) Error when postSend or postRecv", pConnection.get() );
 					pConnection->close();
 					break;
 				}
 
-				lpAcceptPreIoData->m_pAcceptor = NULL;
+				pAcceptPreIoData->m_pAcceptor = NULL;
+			}
+			break;
+
+		case BASE_PRE_IO_DATA::IOCP_OPERATOR_CONNECT:
+			{
+				int32 retCode = -1;
+				CScopePtr<CONNECT_PRE_IO_DATA> pConnectPreIoData ( (LPCONNECT_PRE_IO_DATA)lpPreIoData );
+				CConnectorPtr pConnector = pConnectPreIoData->m_pConnector;
+				IConnectorListenerPtr pListener = pConnector->getListener();
+				CConnectionPtr pConnection = new CConnection( new CTCPSocket( pConnector->getHandle() ), pConnector->getAddress() );
+				
+				//TODO maybe multiple threads to access m_mapConnection, need to add a locker
+				pThis->m_mapConnection[ pConnection.get() ] = pConnection;
+
+				if ( !bRet )
+				{
+					log_warning( "Connect|Connection(%p) Error(%d)", pConnection.get(), GetLastNetError() );
+					break;
+				}
+
+				CAutoLock locker( pConnection->getMutex() );
+
+				pListener->onOpen( pConnection );
+
+				if( pThis->postSend( pConnection ) != 0 || pThis->postRecv( pConnection ) != 0 )
+				{
+					log_warning( "Connect|Connection(%p) Error when postSend or postRecv", pConnection.get() );
+					pConnection->close();
+					break;
+				}
+
+				pConnectPreIoData->m_pConnector = NULL;
 			}
 			break;
 
 		case BASE_PRE_IO_DATA::IOCP_OPERATOR_RECV:
 			{
-				CScopePtr<RECV_PRE_IO_DATA> lpRecvPreIoData ( (LPRECV_PRE_IO_DATA)lpPreIoData );
-				CConnectionPtr pConnection = lpRecvPreIoData->m_pConnection;
+				CScopePtr<RECV_PRE_IO_DATA> pRecvPreIoData ( (LPRECV_PRE_IO_DATA)lpPreIoData );
+				CConnectionPtr pConnection = pRecvPreIoData->m_pConnection;
 				IConnectionListenerPtr pListener = pConnection->getListener();
+				CAutoLock locker( pConnection->getMutex() );
 
-				// 客户端断开连接
 				if ( !bRet )
 				{
-					DEBUG_INFO( "Receive|Error(0x%08X)", GetLastNetError() );
+					log_debug( "Receive|Error(%d)", GetLastNetError() );
 					break;
 					
-					if ( pListener != NULL )
-						pListener->onClose( pConnection );
-
-					pConnection->close();
+					pThis->onConnectionClose( pConnection );
 					break;
 				}
 
-				// 客户端断开连接
 				if ( dwNumberOfBytes == 0 )
 				{
-					DEBUG_INFO( "Receive|dwNumberOfByte is zero" );
+					log_debug( "Receive|dwNumberOfByte is zero" );
 					break;
 
-					if ( pListener != NULL )
-						pListener->onClose( pConnection );
-
-					pConnection->close();
+					pThis->onConnectionClose( pConnection );
 					break;
 				}
 
-				DEBUG_INFO( "Receive|Bytes(%d)", dwNumberOfBytes );
+				log_debug( "Receive|Connection(%p) Bytes(%d)", pConnection.get(), dwNumberOfBytes );
+
+				pRecvPreIoData->m_pConnection->pushRecvData( pRecvPreIoData->m_Buffer.buf, dwNumberOfBytes );
 
 				if ( pListener != NULL )
-					pListener->onRecvCompleted( lpRecvPreIoData->m_pConnection, lpRecvPreIoData->m_Buffer.buf, dwNumberOfBytes );
+					pListener->onRecvCompleted( pRecvPreIoData->m_pConnection );
 
-				// 投递 WSASend & WSARecv 
 				if( pThis->postSend( pConnection ) != 0 || pThis->postRecv( pConnection ) != 0 )
 				{
-					DEBUG_INFO( "Receive|Connection(0x%08X) Error when postSend or postRecv", pConnection );
+					log_warning( "Receive|Connection(%p) Error when postSend or postRecv", pConnection.get() );
 					pConnection->close();
 					break;
 				}
 
-				lpRecvPreIoData->m_pConnection = NULL;
+				pRecvPreIoData->m_pConnection = NULL;
 			}
 			break;
 
 		case BASE_PRE_IO_DATA::IOCP_OPERATOR_SEND:
 			{
-				CScopePtr<SEND_PRE_IO_DATA> lpSendPreIoData ( (LPSEND_PRE_IO_DATA)lpPreIoData );
-				CConnectionPtr pConnection = lpSendPreIoData->m_pConnection;
+				CScopePtr<SEND_PRE_IO_DATA> pSendPreIoData ( (LPSEND_PRE_IO_DATA)lpPreIoData );
+				CConnectionPtr pConnection = pSendPreIoData->m_pConnection;
 				IConnectionListenerPtr pListener = pConnection->getListener();
+				CAutoLock locker( pConnection->getMutex() );
 
 				if( pConnection == NULL )
 				{
-					DEBUG_INFO( "Send|Connection is null");
+					log_warning( "Send|Connection is null");
 					break;
 				}
 
 				if ( !bRet )
 				{
-					DEBUG_INFO( "Send|Error(0x%08X) Connection(0x%08X)", GetLastNetError(), pConnection );
+					log_debug( "Send|Connection(%p) Error(%d)", pConnection.get(), GetLastNetError() );
 
-					if ( pListener != NULL )
-						pListener->onClose( pConnection );
-					pConnection->close();
-
+					pThis->onConnectionClose( pConnection );
 					break;
 				}
 
+				log_debug( "Send|Connection(%p) bytes(%d)", pConnection.get(), dwNumberOfBytes );
 				pConnection->finishSend( dwNumberOfBytes );
 
 				if ( pListener != NULL )
@@ -284,50 +302,19 @@ UINT WINAPI CIocpNetIoWrappers::WorkerThread( LPVOID pParam )
 
 				if( pThis->postSend( pConnection ) != 0 )
 				{
-					DEBUG_INFO( "Send|Connection(0x%08X) Error when postSend", pConnection );
+					log_error( "Send|Connection(%p) Error when postSend", pConnection.get() );
 
-					if ( pListener != NULL )
-						pListener->onClose( pConnection );
-					pConnection->close();
-
+					pThis->onConnectionClose( pConnection );
 					break;
 				}
 
-				lpSendPreIoData->m_pConnection = NULL;
-			}
-			break;
-
-		case BASE_PRE_IO_DATA::IOCP_OPERATOR_CONNECT:
-			{
-				int32 retCode = -1;
-				CScopePtr<CONNECT_PRE_IO_DATA> lpConnectPreIoData ( (LPCONNECT_PRE_IO_DATA)lpPreIoData );
-				CConnectorPtr pConnector = lpConnectPreIoData->m_pConnector;
-				IConnectorListenerPtr pListener = pConnector->getListener();
-				CConnectionPtr pConnection = new CConnection( new CTCPSocket( pConnector->getHandle() ), pConnector->getAddress() );
-
-				if ( !bRet )
-				{
-					DEBUG_INFO( "Connect|Error(0x%08X) Connection(0x%08X)", GetLastNetError(), pConnection );
-					break;
-				}
-
-				pListener->onOpen( pConnection );
-
-				// 投递 WSASend & WSARecv 
-				if( pThis->postSend( pConnection ) != 0 || pThis->postRecv( pConnection ) != 0 )
-				{
-					DEBUG_INFO( "Connect|Connection(0x%08X) Error when postSend or postRecv", pConnection );
-					pConnection->close();
-					break;
-				}
-
-				lpConnectPreIoData->m_pConnector = NULL;
+				pSendPreIoData->m_pConnection = NULL;
 			}
 			break;
 
 		default:
 			{
-				DEBUG_INFO( "Invalid Operator Type(0x%X)", lpPreIoData->m_OperatorType );
+				log_error( "Undefined operator type(0x%X)", lpPreIoData->m_OperatorType );
 			}
 			break;
 		}
@@ -338,40 +325,39 @@ UINT WINAPI CIocpNetIoWrappers::WorkerThread( LPVOID pParam )
 
 int32 CIocpNetIoWrappers::postSend( CConnectionPtr pConnection )
 {
-	//TODO 这里有可能多线程并发读
 	if ( pConnection == NULL )
 	{
-		DEBUG_INFO( "Connection is null" );
+		log_error( "Connection is null" );
 		return -1;
 	}
 
 	CBytesBufferPtr pSendBuf = pConnection->getSendBuffer();
 	if ( pSendBuf == NULL )
 	{
-		DEBUG_INFO( "Send Buffer is null" );
+		log_error( "Connection(%p) Send Buffer is null", pConnection );
 		return -1;
 	}
 
-	// 没有数据发送则认为成功
+	// No data transmission return success
 	if ( pSendBuf->getDataSize() == 0 )
 		return 0;
 
 	if ( pSendBuf->getRowDataPointer() == NULL )
 	{
-		DEBUG_INFO( "Send Buffer is null" );
+		log_error( "Connection(%p) RowDataPointer of send Buffer is null", pConnection );
 		return -1;
 	}
 
 	int32 nRetCode = -1;
 
-	//TODO 这里可以做成对象池
+	//TODO preIoData may get from a object pool
 	CScopePtr<SEND_PRE_IO_DATA> preIoData ( new SEND_PRE_IO_DATA() );
 	preIoData->m_BasePreIoData.m_OperatorType = BASE_PRE_IO_DATA::IOCP_OPERATOR_SEND;
 	preIoData->m_pConnection = pConnection;
 	
 	int32 nSendLen = min( pSendBuf->getDataSize(), sizeof(preIoData->szBuf) );
 
-	DEBUG_INFO( "ThreadID(0x%08X) Connection(0x%08X) send %d bytes", ::GetCurrentThreadId(), pConnection, nSendLen );
+	log_debug( "Connection(%p) send %d bytes", pConnection.get(), nSendLen );
 
 	// s [in]
 	// A descriptor that identifies a connected socket.
@@ -412,7 +398,8 @@ int32 CIocpNetIoWrappers::postSend( CConnectionPtr pConnection )
 			return nRetCode;
 	}
 
-	preIoData.incRef(); // 增加计数, 析构时不进行delete
+	// don't delete preIoData
+	preIoData.incRef(); 
 	return 0;
 }
 
@@ -496,7 +483,6 @@ int32 CIocpNetIoWrappers::postRecv( CConnectionPtr pConnection )
 
 	// dwBufferCount [in]
 	// The number of WSABUF structures in the lpBuffers array.
-	//TODO dwBufferCount大于1时会有什么问题需要考虑?
 
 	// lpNumberOfBytesRecvd [out]
 	// A pointer to the number, in bytes, of data received by this call if the receive operation completes immediately. 
@@ -602,6 +588,27 @@ int32 CIocpNetIoWrappers::postAccept( CAcceptorPtr pAcceptor )
 
 	preIoData.incRef();
 	return 0;
+}
+
+void CIocpNetIoWrappers::getAllConnection( std::map<CConnection*, CConnectionPtr>& mapConnection )
+{
+	mapConnection = m_mapConnection;
+}
+
+void CIocpNetIoWrappers::onConnectionClose( CConnectionPtr pConnection )
+{
+	std::map< CConnection*, CConnectionPtr >::iterator iter_t;
+	iter_t = m_mapConnection.find( pConnection.get() );
+
+	assert( iter_t != m_mapConnection.end() );
+	if ( iter_t != m_mapConnection.end() )
+		m_mapConnection.erase( iter_t );
+
+	IConnectionListenerPtr pListener = pConnection->getListener();
+	if ( pListener != NULL )
+		pListener->onClose( pConnection );
+
+	pConnection->close();
 }
 
 #endif

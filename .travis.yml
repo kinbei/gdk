@@ -3,4 +3,5 @@ language: cpp
 before_script: ls
 
 script:
-  ./configure && make && make test
+  mkdir ./target && mkdir ./lib && make linux
+  

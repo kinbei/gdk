@@ -21,23 +21,24 @@ linux :
 
 GDK_BUILD_PATH ?= .
 
-COMMON_SRC = io/bytesbuffer.cpp \
+COMMON_CPP = io/bytesbuffer.cpp \
 	net/acceptor.cpp net/tcpsocket.cpp \
 	net/iocp/iocpnetiowrappers.cpp net/iocp/wsaextensionfunction.cpp \
 	util/debug.cpp
 
-TEST_SRC = main.cpp
-
+TEST_CPP = main.cpp
 
 all : \
 	$(GDK_BUILD_PATH)/lib/libcommon.a	\
-	$(GDK_BUILD_PATH)/target/test
+	$(GDK_BUILD_PATH)/target/testserver \
+	$(GDK_BUILD_PATH)/target/testclient
 
-$(GDK_BUILD_PATH)/lib/libcommon.a : $(foreach v, $(COMMON_SRC), src/common/$(v))
-	g++ -fPIC --shared -o $@ $^ -Iinc -Iinc/common
+$(GDK_BUILD_PATH)/lib/libcommon.a : $(foreach v, $(COMMON_CPP), src/common/$(v))
+	g++ -g -fPIC --shared -o $@ $^ -Iinc -Iinc/common
 
+$(GDK_BUILD_PATH)/target/testserver : $(foreach v, $(TEST_CPP), test/testserver/$(v))
+	g++ -g -rdynamic -o $@ $^ -Iinc -Iinc/common -L./lib -lcommon
 
-$(GDK_BUILD_PATH)/target/test : $(foreach v, $(TEST_SRC), test/$(v))
-	g++ -rdynamic -o $@ $^ -Iinc -Iinc/common -L./lib -lcommon
-
+$(GDK_BUILD_PATH)/target/testclient : $(foreach v, $(TEST_CPP), test/testclient/$(v))
+	g++ -g -rdynamic -o $@ $^ -Iinc -Iinc/common -L./lib -lcommon
 

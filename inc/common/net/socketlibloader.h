@@ -19,7 +19,6 @@ public:
 	 */
 	CSocketLibLoader()
 	{
-
 	}
 
 	/**
@@ -30,7 +29,6 @@ public:
 	 */
 	virtual ~CSocketLibLoader()
 	{
-		unload();
 	}
 
 	/**
@@ -39,7 +37,7 @@ public:
 	 * \param 
 	 * \return 
 	 */
-	uint32 load()
+	static int32 load()
 	{
 #ifdef WINDOWS
 
@@ -65,7 +63,7 @@ public:
 			HIBYTE( wsaData.wVersion ) != 2 )
 		{
 			DISABLE_UNREFERENCE( ::WSACleanup() );
-			return 1;
+			return -1;
 		}
 #endif // WINDOWS
 
@@ -78,15 +76,12 @@ public:
 	 * \param 
 	 * \return 
 	 */
-	void unload()
+	static void unload()
 	{
 #ifdef WINDOWS
 		DISABLE_UNREFERENCE( ::WSACleanup() );
 #endif // WINDOWS
 	}
-
-private:
-
 };
 
 #endif
