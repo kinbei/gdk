@@ -81,7 +81,15 @@ int32 parseCmdParam( int argc, char* argv[] )
 int main( int argc, char* argv[] )
 {
 	//
-	CDebugMgr::setDebug( new CMyDebug() );
+	CMyDebugPtr pDebug = new CMyDebug();
+	if( pDebug->init() != 0 )
+	{
+		log_error("Failed to init debug module");
+		exit(EXIT_FAILURE);
+	}
+
+	CDebugMgr::setDebug( pDebug.get() );
+	
 
 	log_info("VERSION: %s", GDK_VERSION);
 

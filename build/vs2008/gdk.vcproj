@@ -314,6 +314,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\inc\common\util\semaphore.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\inc\common\util\thread.h"
 					>
 				</File>
