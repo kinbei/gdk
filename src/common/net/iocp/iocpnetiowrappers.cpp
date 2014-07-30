@@ -300,6 +300,9 @@ UINT WINAPI CIocpNetIoWrappers::WorkerThread( LPVOID pParam )
 				if ( pListener != NULL )
 					pListener->onSendCompleted( pConnection, dwNumberOfBytes );
 
+				//
+				pConnection->decPostSend();
+
 				if( pThis->postSend( pConnection ) != 0 )
 				{
 					log_error( "Send|Connection(%p) Error when postSend", pConnection.get() );
@@ -330,6 +333,10 @@ int32 CIocpNetIoWrappers::postSend( CConnectionPtr pConnection )
 		log_error( "Connection is null" );
 		return -1;
 	}
+
+	//
+	if( pConnection->getPostSendCount() != 0 )
+		return 0;
 
 	CBytesBufferPtr pSendBuf = pConnection->getSendBuffer();
 	if ( pSendBuf == NULL )
@@ -397,6 +404,8 @@ int32 CIocpNetIoWrappers::postSend( CConnectionPtr pConnection )
 		if ( nRetCode != WSA_IO_PENDING )
 			return nRetCode;
 	}
+
+	pConnection->incPostSend();
 
 	// don't delete preIoData
 	preIoData.incRef(); 

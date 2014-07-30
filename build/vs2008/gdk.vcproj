@@ -294,6 +294,10 @@
 				Name="util"
 				>
 				<File
+					RelativePath="..\..\inc\common\util\atom.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\inc\common\util\debug.h"
 					>
 				</File>

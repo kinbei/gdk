@@ -1,6 +1,7 @@
 #ifndef _CONNECTION_H_
 #define _CONNECTION_H_
 
+#include <util/atom.h>
 #include <util/mutex.h>
 #include <net/socket.h>
 #include <util/debug.h>
@@ -31,6 +32,9 @@ public:
 		m_pSendBuffer = new CBytesBuffer();
 		// recv bytes buffer
 		m_pRecvBuffer = new CBytesBuffer();
+#ifdef WINDOWS
+		m_nPostSendCount = 0;
+#endif
 	}
 
 	/**
@@ -264,6 +268,32 @@ public:
 		return &m_Mutex;
 	}
 
+#ifdef WINDOWS
+	/**
+	 *
+	 */
+	void incPostSend()
+	{
+		atomIncrement( &m_nPostSendCount );
+	}
+	/**
+	 * 
+	 */
+	void decPostSend()
+	{
+		atomDecrement( &m_nPostSendCount );
+	}
+	/**
+	 * 
+	 */
+	uint32 getPostSendCount()
+	{
+		return atomGet( &m_nPostSendCount );
+	}
+
+
+#endif
+
 private:
 	// Socket
 	ISocketPtr m_pSocket;
@@ -277,6 +307,10 @@ private:
 	CBytesBufferPtr m_pRecvBuffer;
 	// 
 	CMutex m_Mutex;
+#ifdef WINDOWS
+	// the counter of post wsasend
+	uint32 m_nPostSendCount;
+#endif
 };
 typedef TRefCountToObj<CConnection> CConnectionPtr;
 
