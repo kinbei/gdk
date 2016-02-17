@@ -131,17 +131,8 @@ int main( int argc, char* argv[] )
 		exit(EXIT_FAILURE);
 	}
 
-	// 创建 Accpetor 
-	CMyAcceptorPtr pAcceptor = new CMyAcceptor();
-	retCode = pAcceptor->open( g_strIP, g_nPort );
-	if ( retCode != 0 )
-	{
-		ERROR_REPORT("Failed to init Acceptor (%d)", retCode);
-		exit(EXIT_FAILURE);
-	}
-
 	// 将 Acceptor 添加到网络通信模型
-	retCode = g_pNetWrappers->addAcceptor( pAcceptor );
+	retCode = g_pNetWrappers->addAcceptor( g_strIP, g_nPort, AcceptListener );
 	if ( retCode != 0 )
 	{
 		ERROR_REPORT("Failed to add Acceptor (%d)", retCode);

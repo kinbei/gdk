@@ -1,0 +1,12 @@
+1. CAcceptorPtr 对于调用者应该是不可见的
+		INetIoWrappersPtr->addAcceptor() 更改为 INetIoWrappersPtr->createAcceptor(ip, port, listener);
+   
+2. IAcceptorListenerPtr 接口修改
+		修改前: virtual void onRecvCompleted( CConnectionPtr pConnection );
+		修改后: virtual void onRecvCompleted( CConnectionPtr pConnection, CBytesBufferPtr pRecvBuffer );
+		
+3. 去除CConnectionPtr的 发送缓冲区(sendBuffer) 和 接收缓冲区(recvBuffer)
+		CConnectionPtr 对于调用者暴露的接口只需要 send() 跟 close() 足矣
+		思考: 网络层是否有需要对 发送 和 接收 作缓冲?
+		
+

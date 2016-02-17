@@ -44,9 +44,10 @@ public:
 	 */
 	int32 open( const std::string& strIP, uint16 nPort )
 	{
-		RETURN_IF_FAILED( CAcceptor::open( strIP, nPort ) );
+		IAcceptorListenerPtr pListener = new TAcceptorListener<CMyAcceptor>( this, &CMyAcceptor::onAccept );
+		setListener( pListener );
 
-		this->setListener( new TAcceptorListener<CMyAcceptor>( this, &CMyAcceptor::onAccept ) );
+		RETURN_IF_FAILED( CAcceptor::open( strIP, nPort ) );
 		return 0;
 	}
 
@@ -55,14 +56,13 @@ protected:
 	 * accept an new connection
 	 *
 	 * \param pConnection is the new connection, you can call pConnection->close() reject the connection, call pConnection->setListener() set the listener
+	 * you can call send()/setListener()/getAddress()/getHandle()/close() of pConnection
 	 * \return 
 	 */
 	virtual void onAccept( CConnectionPtr pConnection )
 	{
-		pConnection->setListener( new TConnectionListener<CMyAcceptor>( this, 
-			&CMyAcceptor::onSendCompleted, 
-			&CMyAcceptor::onRecvCompleted, 
-			&CMyAcceptor::onClose ) ); 
+		IConnectionListenerPtr pListener = new TConnectionListener<CMyAcceptor>( this, &CMyAcceptor::onSendCompleted, &CMyAcceptor::onRecvCompleted, &CMyAcceptor::onClose );
+		pConnection->setListener( pListener ); 
 
 		CAddressPtr pAddress = pConnection->getAddress();
 		if ( pAddress == NULL )
@@ -77,10 +77,11 @@ protected:
 	/**
 	 * onRecv
 	 *
-	 * \param 
+	 * \param pConnection
+	 * you can call send()/setListener()/getAddress()/getHandle()/close() of pConnection
 	 * \return 
 	 */
-	virtual void onRecvCompleted( CConnectionPtr pConnection )
+	virtual void onRecvCompleted( CConnectionPtr pConnection, CBytesBufferPtr pRecvBuffer )
 	{
 		CBytesBufferPtr pRecvBuf = pConnection->getRecvBuffer();
 		if ( pRecvBuf == NULL )

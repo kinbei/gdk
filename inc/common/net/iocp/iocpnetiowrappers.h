@@ -60,7 +60,7 @@ public:
 	* \param 
 	* \return 
 	*/
-	virtual int32 addAcceptor( CAcceptorPtr pAcceptor );
+	virtual int32 createAcceptor( CAcceptorPtr pAcceptor );
 
 	/**
 	* 网络事件处理, 程序可以一直调用此函数直至程序结束

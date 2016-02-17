@@ -132,7 +132,7 @@ public:
 	 * \param 
 	 * \return 
 	 */
-	virtual int32 addAcceptor( CAcceptorPtr pAcceptor )
+	virtual int32 createAcceptor( CAcceptorPtr pAcceptor )
 	{
 		CEpollBindDataPtr pBindData = new CEpollBindData();
 		pBindData->m_BindDataType = CEpollBindData::ACCEPTOR_TYPE;
