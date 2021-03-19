@@ -54,7 +54,7 @@ int32 CIocpNetIoWrappers::addConnector( CConnectorPtr pConnector )
 	return postConnect( pConnector );
 }
 
-int32 CIocpNetIoWrappers::addAcceptor( CAcceptorPtr pAcceptor )
+int32 CIocpNetIoWrappers::createAcceptor( CAcceptorPtr pAcceptor )
 {
 	//TODO 
 	//第一次关联到完成端口成功, 但PostAccept()失败, 即使再次调用addAcceptor()也不会发送数据
@@ -215,8 +215,6 @@ UINT WINAPI CIocpNetIoWrappers::WorkerThread( LPVOID pParam )
 					break;
 				}
 
-				CAutoLock locker( pConnection->getMutex() );
-
 				pListener->onOpen( pConnection );
 
 				if( pThis->postSend( pConnection ) != 0 || pThis->postRecv( pConnection ) != 0 )
@@ -240,8 +238,6 @@ UINT WINAPI CIocpNetIoWrappers::WorkerThread( LPVOID pParam )
 				if ( !bRet )
 				{
 					log_debug( "Receive|Error(%d)", GetLastNetError() );
-					break;
-					
 					pThis->onConnectionClose( pConnection );
 					break;
 				}
@@ -249,15 +245,13 @@ UINT WINAPI CIocpNetIoWrappers::WorkerThread( LPVOID pParam )
 				if ( dwNumberOfBytes == 0 )
 				{
 					log_debug( "Receive|dwNumberOfByte is zero" );
-					break;
-
 					pThis->onConnectionClose( pConnection );
 					break;
 				}
 
 				log_debug( "Receive|Connection(%p) Bytes(%d)", pConnection.get(), dwNumberOfBytes );
 
-				pRecvPreIoData->m_pConnection->pushRecvData( pRecvPreIoData->m_Buffer.buf, dwNumberOfBytes );
+				pRecvPreIoData->m_pConnection->recv( pRecvPreIoData->m_Buffer.buf, dwNumberOfBytes );
 
 				if ( pListener != NULL )
 					pListener->onRecvCompleted( pRecvPreIoData->m_pConnection );
@@ -278,8 +272,7 @@ UINT WINAPI CIocpNetIoWrappers::WorkerThread( LPVOID pParam )
 				CScopePtr<SEND_PRE_IO_DATA> pSendPreIoData ( (LPSEND_PRE_IO_DATA)lpPreIoData );
 				CConnectionPtr pConnection = pSendPreIoData->m_pConnection;
 				IConnectionListenerPtr pListener = pConnection->getListener();
-				CAutoLock locker( pConnection->getMutex() );
-
+				
 				if( pConnection == NULL )
 				{
 					log_warning( "Send|Connection is null");
@@ -330,6 +323,10 @@ int32 CIocpNetIoWrappers::postSend( CConnectionPtr pConnection )
 		log_error( "Connection is null" );
 		return -1;
 	}
+
+	//
+	if( pConnection->getPostSendCount() != 0 )
+		return 0;
 
 	CBytesBufferPtr pSendBuf = pConnection->getSendBuffer();
 	if ( pSendBuf == NULL )
@@ -397,6 +394,8 @@ int32 CIocpNetIoWrappers::postSend( CConnectionPtr pConnection )
 		if ( nRetCode != WSA_IO_PENDING )
 			return nRetCode;
 	}
+
+	pConnection->incPostSend();
 
 	// don't delete preIoData
 	preIoData.incRef(); 

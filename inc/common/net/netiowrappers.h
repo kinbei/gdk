@@ -56,7 +56,7 @@ public:
 	 * \param 
 	 * \return 
 	 */
-	virtual int32 addAcceptor( CAcceptorPtr pAcceptor ) = 0;
+	virtual int32 createAcceptor( const string& strIP, uint16 nPort, IAcceptorListenerPtr pListener ) = 0;
 
 	/**
 	 * 网络事件处理, 程序可以一直调用 run() 直至程序结束

@@ -27,12 +27,13 @@ public:
 	}
 
 	/**
-	 * onRecvCompleted
+	 * onRecv
 	 *
-	 * \param 
+	 * \param pConnection
+	 * you can call send()/setListener()/getAddress()/getHandle()/close() of pConnection
 	 * \return 
 	 */
-	virtual void onRecvCompleted( CConnectionPtr pConnection ) = 0;
+	virtual void onRecvCompleted( CConnectionPtr pConnection, CBytesBufferPtr pRecvBuffer );
 
 	/**
 	 * onSendCompleted

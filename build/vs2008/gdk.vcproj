@@ -294,6 +294,10 @@
 				Name="util"
 				>
 				<File
+					RelativePath="..\..\inc\common\util\atom.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\inc\common\util\debug.h"
 					>
 				</File>
@@ -311,6 +315,10 @@
 				</File>
 				<File
 					RelativePath="..\..\inc\common\util\scopeptr.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\inc\common\util\semaphore.h"
 					>
 				</File>
 				<File
